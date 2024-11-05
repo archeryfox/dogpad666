@@ -1,0 +1,99 @@
+@startuml
+
+class User {
+  +Int id
+  +String name
+  +String email
+  +String password
+  +Int roleId
+  +Role role
+  +List<Event> events
+  +List<Subscription> subscriptions
+}
+
+class Role {
+  +Int id
+  +String name
+  +List<User> users
+}
+
+class Event {
+  +Int id
+  +String name
+  +String description
+  +DateTime date
+  +String location
+  +Int organizerId
+  +User organizer
+  +Int? venueId
+  +Venue venue
+  +List<Subscription> subscriptions
+  +List<EventSpeaker> speakers
+  +List<EventCategory> categories
+}
+
+class Subscription {
+  +Int id
+  +Int userId
+  +User user
+  +Int eventId
+  +Event event
+  +DateTime subscriptionDate
+}
+
+class Speaker {
+  +Int id
+  +String name
+  +String biography
+  +List<EventSpeaker> events
+}
+
+class Category {
+  +Int id
+  +String name
+  +List<EventCategory> events
+}
+
+class Venue {
+  +Int id
+  +String name
+  +String address
+  +Int capacity
+  +List<Event> events
+}
+
+class EventSpeaker {
+  +Int id
+  +Int eventId
+  +Event event
+  +Int speakerId
+  +Speaker speaker
+}
+
+class EventCategory {
+  +Int id
+  +Int eventId
+  +Event event
+  +Int categoryId
+  +Category category
+}
+
+User "1" -- "0..*" Subscription : "subscriptions"
+User "1" -- "0..*" Event : "organizer of events"
+User "1" -- "1" Role : "role"
+Role "1" -- "0..*" User : "users"
+Event "1" -- "0..*" Subscription : "subscriptions"
+Event "1" -- "0..*" EventSpeaker : "speakers"
+Event "1" -- "0..*" EventCategory : "categories"
+Event "0..1" -- "1" Venue : "venue"
+Subscription "1" -- "1" User : "user"
+Subscription "1" -- "1" Event : "event"
+Speaker "1" -- "0..*" EventSpeaker : "events"
+Category "1" -- "0..*" EventCategory : "events"
+Venue "1" -- "0..*" Event : "events"
+EventSpeaker "1" -- "1" Event : "event"
+EventSpeaker "1" -- "1" Speaker : "speaker"
+EventCategory "1" -- "1" Event : "event"
+EventCategory "1" -- "1" Category : "category"
+
+@enduml

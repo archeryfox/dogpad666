@@ -1,0 +1,39 @@
+{
+  "name": "kurstimebunbackstage",
+  "module": "./bin/www.js",
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "^5.21.1",
+    "@prisma/extension-accelerate": "^1.2.1",
+    "@types/express": "^5.0.0",
+    "adaro": "^1.0.4",
+    "better-sqlite3": "^11.3.0",
+    "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "dotenv-cli": "^7.4.2",
+    "dustjs-linkedin": "^3.0.1",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "method-override": "^3.0.0",
+    "prisma": "^5.21.1",
+    "sqlite": "^5.1.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "scripts": {
+    "dev": "bun nodemon app.js",
+    "studio": "bunx prisma studio",
+    "db": "bunx prisma migrate dev ; bunx prisma db push --name dev",
+    "doc": "bun run ./docs/swagger.js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "nodemon": "^3.1.7"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
