@@ -3,7 +3,7 @@
   "module": "./bin/www.js",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^5.21.1",
+    "@prisma/client": "^5.22.0",
     "@prisma/extension-accelerate": "^1.2.1",
     "@types/express": "^5.0.0",
     "adaro": "^1.0.4",
@@ -17,7 +17,7 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "method-override": "^3.0.0",
-    "prisma": "^5.21.1",
+    "prisma": "^5.22.0",
     "sqlite": "^5.1.1",
     "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
@@ -26,7 +26,7 @@
   "scripts": {
     "dev": "bun nodemon app.js",
     "studio": "bunx prisma studio",
-    "db": "bunx prisma migrate dev ; bunx prisma db push --name dev",
+    "db": "bunx prisma migrate dev ; bunx prisma db push",
     "doc": "bun run ./docs/swagger.js"
   },
   "devDependencies": {
