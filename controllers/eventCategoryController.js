@@ -12,7 +12,7 @@ export async function getAllEventCategories(req, res) {
 
 export async function getEventCategoryById(req, res) {
     try {
-        const category = await EventCategoryService.getEventCategoryById(req.params.id);
+        const category = await EventCategoryService.getEventCategoryById(req.params.id-0);
         if (!category) return res.status(404).json({ error: 'Event Category not found' });
         res.json(category);
     } catch (error) {
@@ -31,7 +31,7 @@ export async function createEventCategory(req, res) {
 
 export async function updateEventCategory(req, res) {
     try {
-        const category = await EventCategoryService.updateEventCategory(req.params.id, req.body);
+        const category = await EventCategoryService.updateEventCategory(req.params.id-0, req.body);
         res.json(category);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -40,7 +40,7 @@ export async function updateEventCategory(req, res) {
 
 export async function deleteEventCategory(req, res) {
     try {
-        await EventCategoryService.deleteEventCategory(req.params.id);
+        await EventCategoryService.deleteEventCategory(req.params.id-0);
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: error.message });

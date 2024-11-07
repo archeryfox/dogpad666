@@ -3,7 +3,20 @@ import { prisma } from '../prisma/prisma.js';
 
 class EventSpeakerService {
     static async getAllEventSpeakers() {
-        return await prisma.eventSpeaker.findMany();
+        return await prisma.eventSpeaker.findMany({
+            include: {
+                speaker: {
+                    select: {
+                        name: true,
+                    },
+                },
+                event: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
     }
 
     static async getEventSpeakerById(id) {

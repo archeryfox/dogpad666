@@ -12,7 +12,7 @@ export async function getAllEvents(req, res) {
 
 export async function getEventById(req, res) {
     try {
-        const event = await EventService.getEventById(req.params.id);
+        const event = await EventService.getEventById(req.params.id-0);
         if (!event) return res.status(404).json({ error: 'Event not found' });
         res.json(event);
     } catch (error) {
@@ -31,7 +31,7 @@ export async function createEvent(req, res) {
 
 export async function updateEvent(req, res) {
     try {
-        const event = await EventService.updateEvent(req.params.id, req.body);
+        const event = await EventService.updateEvent(req.params.id-0, req.body);
         res.json(event);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -40,7 +40,7 @@ export async function updateEvent(req, res) {
 
 export async function deleteEvent(req, res) {
     try {
-        await EventService.deleteEvent(req.params.id);
+        await EventService.deleteEvent(req.params.id-0);
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: error.message });

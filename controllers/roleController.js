@@ -12,7 +12,7 @@ export async function getAllRoles(req, res) {
 
 export async function getRoleById(req, res) {
     try {
-        const role = await RoleService.getRoleById(req.params.id);
+        const role = await RoleService.getRoleById(req.params.id-0);
         if (!role) return res.status(404).json({ error: 'Role not found' });
         res.json(role);
     } catch (error) {
@@ -31,7 +31,7 @@ export async function createRole(req, res) {
 
 export async function updateRole(req, res) {
     try {
-        const role = await RoleService.updateRole(req.params.id, req.body);
+        const role = await RoleService.updateRole(req.params.id-0, req.body);
         res.json(role);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -40,7 +40,7 @@ export async function updateRole(req, res) {
 
 export async function deleteRole(req, res) {
     try {
-        await RoleService.deleteRole(req.params.id);
+        await RoleService.deleteRole(req.params.id-0);
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: error.message });

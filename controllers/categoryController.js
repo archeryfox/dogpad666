@@ -24,7 +24,7 @@ export async function createCategory(req, res) {
 // Получить категорию по ID
 export async function getCategoryById(req, res) {
     try {
-        const category = await CategoryService.getCategoryById(req.params.id);
+        const category = await CategoryService.getCategoryById(req.params.id-0);
         if (category) {
             res.json(category);
         } else {
@@ -38,7 +38,7 @@ export async function getCategoryById(req, res) {
 // Обновить категорию по ID
 export async function updateCategory(req, res) {
     try {
-        const category = await CategoryService.updateCategory(req.params.id, req.body);
+        const category = await CategoryService.updateCategory(req.params.id-0, req.body);
         if (category) {
             res.json(category);
         } else {
@@ -52,7 +52,7 @@ export async function updateCategory(req, res) {
 // Удалить категорию по ID
 export async function deleteCategory(req, res) {
     try {
-        const category = await CategoryService.deleteCategory(req.params.id);
+        const category = await CategoryService.deleteCategory(req.params.id-0);
         if (category) {
             res.json({ message: "Category deleted successfully" });
         } else {

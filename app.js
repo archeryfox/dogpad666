@@ -10,13 +10,16 @@ import methodOverride from "method-override";
 import swaggerUI from "swagger-ui-express";
 import swaggerDocument from './docs/swagger.json' assert {type: "json"};
 import * as dotenv from 'dotenv';
-
+import {setupAutoBackup} from "./utils/backup.js";
+import logger from "./utils/logger.js";
+import morgan from 'morgan'
 dotenv.config(); // Загружаем переменные окружения
 
 export const app = express();
 const port = 8081;
 
 // Middleware
+setupAutoBackup(24);
 app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -24,6 +27,7 @@ app.use(cookieParser());
 app.use(session({secret: 'cool beans', resave: false, saveUninitialized: true}));
 app.use(methodOverride());
 app.use(express.static('public'));
+app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Swagger setup
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
@@ -56,6 +60,7 @@ import transactionsRoutes from './routes/transactions.js';
 import usersRoutes from './routes/users.js';
 import venuesRoutes from './routes/venues.js';
 
+
 // Setup routes
 app.use('/categories', categoriesRoutes);
 app.use('/event-categories', eventCategoriesRoutes);
@@ -70,5 +75,6 @@ app.use('/venues', venuesRoutes);
 
 // Start the server
 app.listen(port, () => {
+    logger.info("Сервер запущен на порту 8081");
     console.log(`Listening on port ${port}...`);
 });

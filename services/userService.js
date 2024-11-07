@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\services\userService.js
-import { prisma } from '../prisma/prisma.js';
+import {prisma} from '../prisma/prisma.js';
 
 class UserService {
     static async getAllUsers() {
@@ -7,19 +7,19 @@ class UserService {
     }
 
     static async getUserById(id) {
-        return await prisma.user.findUnique({ where: { id } });
+        return await prisma.user.findUnique({where: {id}});
     }
 
     static async createUser(data) {
-        return await prisma.user.create({ data });
+        return await prisma.user.create({data});
     }
 
     static async updateUser(id, data) {
-        return await prisma.user.update({ where: { id }, data });
+        return await prisma.user.update({where: {id}, data});
     }
 
     static async deleteUser(id) {
-        return await prisma.user.delete({ where: { id } });
+        return await prisma.user.delete({where: {id}});
     }
 }
 

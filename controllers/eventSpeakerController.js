@@ -12,7 +12,7 @@ export async function getAllEventSpeakers(req, res) {
 
 export async function getEventSpeakerById(req, res) {
     try {
-        const speaker = await EventSpeakerService.getEventSpeakerById(req.params.id);
+        const speaker = await EventSpeakerService.getEventSpeakerById(req.params.id-0);
         if (!speaker) return res.status(404).json({ error: 'Event Speaker not found' });
         res.json(speaker);
     } catch (error) {
@@ -31,7 +31,7 @@ export async function createEventSpeaker(req, res) {
 
 export async function updateEventSpeaker(req, res) {
     try {
-        const speaker = await EventSpeakerService.updateEventSpeaker(req.params.id, req.body);
+        const speaker = await EventSpeakerService.updateEventSpeaker(req.params.id-0, req.body);
         res.json(speaker);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -40,7 +40,7 @@ export async function updateEventSpeaker(req, res) {
 
 export async function deleteEventSpeaker(req, res) {
     try {
-        await EventSpeakerService.deleteEventSpeaker(req.params.id);
+        await EventSpeakerService.deleteEventSpeaker(req.params.id-0);
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: error.message });
