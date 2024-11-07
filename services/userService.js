@@ -3,7 +3,15 @@ import {prisma} from '../prisma/prisma.js';
 
 class UserService {
     static async getAllUsers() {
-        return await prisma.user.findMany();
+        return await prisma.user.findMany({
+            include: {
+                role: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
     }
 
     static async getUserById(id) {

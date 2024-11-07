@@ -1,13 +1,28 @@
 // D:\WORK\kursTimeBunBackStage\services\venueService.js
-import { prisma } from '../prisma/prisma.js';
+import {prisma} from '../prisma/prisma.js';
 
 class VenueService {
     static async getAllVenues() {
-        return await prisma.venue.findMany();
+        return await prisma.venue.findMany({
+            select: {
+                id: true,
+                name: true,
+                address: true,
+                capacity: true,
+                events: {select: {_count: true}}
+            }
+        });
     }
 
     static async getVenueById(id) {
-        return await prisma.venue.findUnique({ where: { id } });
+        return await prisma.venue.findUnique({ select: {
+                id: true,
+                name: true,
+                address: true,
+                capacity: true,
+                events: {select: {_count: true}}
+            },
+            where: { id } });
     }
 
     static async createVenue(data) {

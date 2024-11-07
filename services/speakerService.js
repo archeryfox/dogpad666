@@ -2,8 +2,15 @@
 import { prisma } from '../prisma/prisma.js';
 
 class SpeakerService {
+    static query={
+        user: {
+            select:{
+                name: 1
+            }
+        }
+    };
     static async getAllSpeakers() {
-        return await prisma.speaker.findMany();
+        return await prisma.speaker.findMany({include: this.query});
     }
 
     static async getSpeakerById(id) {

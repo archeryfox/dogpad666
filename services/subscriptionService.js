@@ -2,8 +2,15 @@
 import { prisma } from '../prisma/prisma.js';
 
 class SubscriptionService {
+    static query= {
+        event: {
+            select: {
+                name: 1, date: 1
+            }
+        }
+    };
     static async getAllSubscriptions() {
-        return await prisma.subscription.findMany();
+        return await prisma.subscription.findMany({include: this.query});
     }
 
     static async getSubscriptionById(id) {
