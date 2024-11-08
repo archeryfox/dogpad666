@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\userService.js
-import {prisma} from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\userService.js
+import {prisma} from '../../prisma/prisma.js';
 
 class UserService {
     static async getAllUsers() {

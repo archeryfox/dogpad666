@@ -49,21 +49,17 @@ app.set('view engine', 'dust');
 app.set('views', path.join(__dirname, 'views'));
 
 // Import routes
-import categoriesRoutes from './routes/categories.js';
-import eventsRoutes from './routes/events.js';
-import eventSpeakersRoutes from './routes/eventSpeakers.js';
-import rolesRoutes from './routes/roles.js';
-import speakersRoutes from './routes/speakers.js';
-import subscriptionsRoutes from './routes/subscriptions.js';
-import transactionsRoutes from './routes/transactions.js';
-import usersRoutes from './routes/users.js';
-import venuesRoutes from './routes/venues.js';
-
-
+import categoriesRoutes from './domain/routes/categories.js';
+import eventsRoutes from './domain/routes/events.js';
+import rolesRoutes from './domain/routes/roles.js';
+import speakersRoutes from './domain/routes/speakers.js';
+import subscriptionsRoutes from './domain/routes/subscriptions.js';
+import transactionsRoutes from './domain/routes/transactionz.js';
+import usersRoutes from './domain/routes/users.js';
+import venuesRoutes from './domain/routes/venues.js';
 // Setup routes
 app.use('/categories', categoriesRoutes);
 app.use('/events', eventsRoutes);
-app.use('/event-speakers', eventSpeakersRoutes);
 app.use('/roles', rolesRoutes);
 app.use('/speakers', speakersRoutes);
 app.use('/subscriptions', subscriptionsRoutes);

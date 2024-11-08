@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\subscriptionService.js
-import { prisma } from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\subscriptionService.js
+import { prisma } from '../../prisma/prisma.js';
 
 class SubscriptionService {
     static query= {

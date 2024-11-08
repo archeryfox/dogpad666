@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\venueController.js
-import VenueService from '../services/venueService.js';
+import VenueService from '../_services/venueService.js';
 
 export async function getAllVenues(req, res) {
     try {

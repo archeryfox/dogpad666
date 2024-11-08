@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\roleService.js
-import { prisma } from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\roleService.js
+import { prisma } from '../../prisma/prisma.js';
 
 class RoleService {
     static async getAllRoles() {

@@ -1,9 +1,0 @@
-<html lang="RU">
-<head>
-    <title>Hi</title>
-    <link href="https://cdn.tailwind.com">
-</head>
-<body>
-{!    <h1>hi fs {GOIDA}</h1>!}
-    <a href="http://localhost:5555">studio</a>
-</body>

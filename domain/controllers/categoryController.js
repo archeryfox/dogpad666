@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\categoryController.js
-import CategoryService from "../services/categoryService.js";
+import CategoryService from "../_services/CategoryService.js";
 
 // Получить все категории
 export async function getAllCategories(req, res) {

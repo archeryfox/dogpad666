@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\eventController.js
-import EventService from '../services/eventService.js';
+import EventService from '../_services/eventService.js';
 
 export async function getAllEvents(req, res) {
     try {

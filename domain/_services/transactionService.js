@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\transactionService.js
-import { prisma } from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\transactionService.js
+import { prisma } from '../../prisma/prisma.js';
 
 class TransactionService {
     static async getAllTransactions() {

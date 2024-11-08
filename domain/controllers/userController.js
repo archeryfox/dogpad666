@@ -1,6 +1,6 @@
 // D:\WORK\kursTimeBunBackStage\controllers\userController.js
-import UserService from '../services/userService.js';
-import logger from "../utils/logger.js";
+import UserService from '../_services/userService.js';
+import logger from "../../utils/logger.js";
 
 export async function getAllUsers(req, res) {
     try {

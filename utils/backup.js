@@ -3,7 +3,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import * as dotenv from 'dotenv';
 import logger from "./logger.js";
-
+// TODO перенести на другой сервак запросы
 dotenv.config();
 // D:\WORK\kursTimeBunBackStage\prisma\timepad.db
 const DB_PATH = process.env.DB_PATH || './prisma/timepad.db';  // Путь к основной БД

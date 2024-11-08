@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\transactionController.js
-import TransactionService from '../services/transactionService.js';
+import TransactionService from '../_services/transactionService.js';
 
 export async function getAllTransactions(req, res) {
     try {

@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\categoryService.js
-import { prisma } from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\CategoryService.js
+import { prisma } from '../../prisma/prisma.js';
 
 class CategoryService {
     // Получить все категории

@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\venueService.js
-import {prisma} from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\venueService.js
+import {prisma} from '../../prisma/prisma.js';
 
 class VenueService {
     static async getAllVenues() {

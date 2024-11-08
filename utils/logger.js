@@ -4,7 +4,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 // Определяем директорию для логов
 const logDirectory = path.join('logs');
-
+// TODO перенести на другой сервак запросы
 // Конфигурация логгера
 const logger = createLogger({
     level: 'info',

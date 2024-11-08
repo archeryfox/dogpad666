@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\speakerService.js
-import { prisma } from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\speakerService.js
+import { prisma } from '../../prisma/prisma.js';
 
 class SpeakerService {
     static query={

@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\roleController.js
-import RoleService from '../services/roleService.js';
+import RoleService from '../_services/roleService.js';
 
 export async function getAllRoles(req, res) {
     try {

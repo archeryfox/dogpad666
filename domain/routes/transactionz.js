@@ -1,4 +1,4 @@
-// D:\WORK\kursTimeBunBackStage\routes\transactions.js
+// D:\WORK\kursTimeBunBackStage\routes\transactionz.js
 import express from 'express';
 import {
     getAllTransactions,

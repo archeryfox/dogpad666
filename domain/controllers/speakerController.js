@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\speakerController.js
-import SpeakerService from '../services/speakerService.js';
+import SpeakerService from '../_services/speakerService.js';
 
 export async function getAllSpeakers(req, res) {
     try {

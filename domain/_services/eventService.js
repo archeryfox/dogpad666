@@ -1,5 +1,5 @@
-// D:\WORK\kursTimeBunBackStage\services\eventService.js
-import {prisma} from '../prisma/prisma.js';
+// D:\WORK\kursTimeBunBackStage\_services\eventService.js
+import {prisma} from '../../prisma/prisma.js';
 
 class EventService {
     static query = {
@@ -39,6 +39,7 @@ class EventService {
     static async getEventById(id) {
         return await prisma.event.findUnique({
             where: {id},
+            include: this.query
         });
     }
 

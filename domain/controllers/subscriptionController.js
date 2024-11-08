@@ -1,5 +1,5 @@
 // D:\WORK\kursTimeBunBackStage\controllers\subscriptionController.js
-import SubscriptionService from '../services/subscriptionService.js';
+import SubscriptionService from '../_services/subscriptionService.js';
 
 export async function getAllSubscriptions(req, res) {
     try {
