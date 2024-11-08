@@ -30,7 +30,7 @@ app.use(express.static('public'));
 app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
 
 // Swagger setup
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 
 // Content Security Policy
 app.use((req, res, next) => {
@@ -57,6 +57,17 @@ import subscriptionsRoutes from './domain/routes/subscriptions.js';
 import transactionsRoutes from './domain/routes/transactionz.js';
 import usersRoutes from './domain/routes/users.js';
 import venuesRoutes from './domain/routes/venues.js';
+// D:\WORK\kursTimeBunBackStage\app.js
+import authRoutes from "./domain/routes/auth.js";
+import {authenticateToken} from "./utils/authMiddleware.js";
+
+app.get('/profile', authenticateToken, (req, res) => {
+    res.json({ message: 'Welcome to your profile', user: req.user });
+});
+
+// Добавьте маршрут авторизации
+app.use('/auth', authRoutes);
+
 // Setup routes
 app.use('/categories', categoriesRoutes);
 app.use('/events', eventsRoutes);
