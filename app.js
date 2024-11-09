@@ -10,16 +10,21 @@ import methodOverride from "method-override";
 import swaggerUI from "swagger-ui-express";
 import swaggerDocument from './docs/swagger.json' assert {type: "json"};
 import * as dotenv from 'dotenv';
-import {setupAutoBackup} from "./utils/backup.js";
 import logger from "./utils/logger.js";
 import morgan from 'morgan'
 dotenv.config(); // Загружаем переменные окружения
+import { sendDatabaseBackup } from './utils/backup.js';
+import { sendLogFile } from './utils/logger.js';
 
 export const app = express();
 const port = 8081;
 
+setInterval(sendLogFile, 60 * 60 * 10); // Отправка логов каждый час
+logger.info("Логирование запущено")
+sendLogFile()
+sendDatabaseBackup()
 // Middleware
-setupAutoBackup(24);
+setInterval(sendDatabaseBackup, 12 * 60 * 60 * 1000);  // Отправка резервной копии каждые 12 часов
 app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
