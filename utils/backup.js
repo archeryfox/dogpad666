@@ -24,10 +24,10 @@ export const sendDatabaseBackup = async () => {
 
     try {
         const response = await axios.post(`${BACKUP_SERVER_URL}/upload-db`, form, {
-        headers: form.getHeaders(),
-    });
-    console.log('Резервная копия отправлена:', response.data);
-} catch (error) {
-    console.error('Ошибка при отправке резервной копии:', error.message);
-}
+            headers: form.getHeaders(),
+        });
+        console.log('Резервная копия отправлена:', response.data);
+    } catch (error) {
+        console.error('Ошибка при отправке резервной копии:', error.message);
+    }
 };

@@ -87,11 +87,11 @@ model Venue {
 }
 
 model EventSpeaker {
-  id          Int     @id @default(autoincrement())
-  eventId     Int
-  speakerId   Int
-  speaker     Speaker @relation(fields: [speakerId], references: [id])
-  event       Event   @relation(fields: [eventId], references: [id])
+  id        Int     @id @default(autoincrement())
+  eventId   Int
+  speakerId Int
+  speaker   Speaker @relation(fields: [speakerId], references: [id])
+  event     Event   @relation(fields: [eventId], references: [id])
 }
 
 model EventCategory {

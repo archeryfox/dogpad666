@@ -28,6 +28,7 @@ setInterval(sendDatabaseBackup, 12 * 60 * 60 * 1000);  // Отправка ре�
 app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(express.text()); // Добавьте это для парсинга текстовых данных
 app.use(cookieParser());
 app.use(session({secret: 'cool beans', resave: false, saveUninitialized: true}));
 app.use(methodOverride());
