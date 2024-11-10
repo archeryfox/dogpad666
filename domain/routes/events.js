@@ -5,12 +5,19 @@ import {
     getEventById,
     createEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    importEventsFromSQL, exportEventsToSQL,
+    importEventsFromCSV, exportEventsToCSV,
+    getFilteredEvents,
 } from '../controllers/eventController.js';
 
 const router = express.Router();
-
+router.post('/import-sql', importEventsFromSQL);
+router.get('/export-sql', exportEventsToSQL);
+router.post('/import-csv', importEventsFromCSV);
+router.get('/export-csv', exportEventsToCSV);
 router.get('/', getAllEvents);
+router.get('/f', getFilteredEvents);
 router.get('/:id', getEventById);
 router.post('/', createEvent);
 router.put('/:id', updateEvent);
