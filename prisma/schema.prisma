@@ -13,6 +13,7 @@ model User {
   email         String         @unique
   password      String
   balance       Float          @default(0.0)
+  avatar        String?        // Новый атрибут для хранения аватарки
   events        Event[]        @relation("OrganizerEvents")
   Speaker       Speaker[]
   subscriptions Subscription[]
@@ -20,6 +21,7 @@ model User {
   roleId        Int?           @default(2)
   role          Role?          @relation(fields: [roleId], references: [id])
 }
+
 
 model Role {
   id    Int    @id @default(autoincrement())
@@ -34,6 +36,7 @@ model Event {
   date          DateTime        @default(now())
   isPaid        Boolean         @default(false)
   price         Float?
+  image         String?         // Новый атрибут для хранения картинки мероприятия
   organizerId   Int
   venueId       Int?
   venue         Venue?          @relation(fields: [venueId], references: [id])
@@ -67,6 +70,7 @@ model Speaker {
   id        Int            @id @default(autoincrement())
   name      String
   biography String
+  avatar    String?        // Новый атрибут для аватарки спикера
   events    EventSpeaker[]
   userId    Int
   user      User           @relation(fields: [userId], references: [id])
@@ -83,8 +87,10 @@ model Venue {
   name     String
   address  String
   capacity Int
+  image    String? // Новый атрибут для изображения места
   events   Event[]
 }
+
 
 model EventSpeaker {
   id        Int     @id @default(autoincrement())

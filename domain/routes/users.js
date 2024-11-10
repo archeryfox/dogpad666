@@ -6,14 +6,14 @@ import {
     createUser,
     updateUser,
     deleteUser,
-    exportUsersToSQL,
-    importUsersFromSQL,
-    exportUsers,
-    importUsers
+    exportUsersToSQL, importUsersFromSQL,
+    exportUsers, importUsers,
+    getFilteredUsers
 } from '../controllers/userController.js';
 
 const router = express.Router();
 
+router.get("/f", getFilteredUsers);
 // Роут для импорта пользователей из SQL
 router.post('/import-sql', importUsersFromSQL);
 // Роут для экспорта пользователей в SQL

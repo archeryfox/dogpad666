@@ -1,13 +1,69 @@
 import {prisma} from "../../prisma/prisma.js";
 import bcrypt from "bcryptjs";
 import logger from "../../utils/logger.js";
-import {parse} from 'json2csv';
+import {parse} from "json2csv";
 import fs from "fs";
 import csvParser from "csv-parser";
 import {Readable} from "stream"; // Для работы с потоком данных
 
 
 class UserService {
+    // Получить пользователей с возможностью фильтрации, сортировки и поиска
+    static async getUsers({ search = '', filter = {}, sortField = 'name', sortOrder = 'asc', limit = 10, offset = 0 }) {
+        try {
+            const { roleId, balanceMin, balanceMax } = filter;
+
+            // Составляем условие поиска
+            const whereClause = {};
+
+            // Добавляем фильтр по имени и email, если задан search
+            if (search) {
+                whereClause.OR = [
+                    { name: { contains: search} },
+                    { email: { contains: search } }
+                ];
+            }
+
+            // Фильтрация по роли
+            if (roleId) {
+                whereClause.roleId = roleId;
+            }
+
+            // Фильтрация по балансу
+            if (balanceMin || balanceMax) {
+                whereClause.balance = {};
+                if (balanceMin) whereClause.balance.gte = balanceMin;
+                if (balanceMax) whereClause.balance.lte = balanceMax;
+            }
+
+            // Условие сортировки
+            const orderBy = {
+                [sortField]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc'
+            };
+            console.log("Условие поиска:", JSON.stringify(whereClause));
+
+            // Получаем пользователей с учетом фильтрации, сортировки и пагинации
+            return await prisma.user.findMany({
+                where: whereClause,
+                orderBy,
+                skip: offset,
+                take: limit,
+                include: {
+                    role: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Полная ошибка от Prisma:', error); // Выводим полную информацию об ошибке
+            logger.error('Ошибка при получении пользователей с фильтрацией и сортировкой:', error.message);
+            throw new Error('Не удалось получить пользователей');
+        }
+    }
+
+
     static async exportUsersToCSV() {
         try {
             const users = await prisma.user.findMany({

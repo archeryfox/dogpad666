@@ -3,7 +3,7 @@
   "module": "./bin/www.js",
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^5.21.1",
+    "@prisma/client": "^5.22.0",
     "@prisma/extension-accelerate": "^1.2.1",
     "@types/express": "^5.0.0",
     "adaro": "^1.0.4",

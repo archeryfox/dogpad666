@@ -15,6 +15,37 @@ export async function exportUsersToSQL(req, res) {
     }
 }
 
+export async function getFilteredUsers(req, res) {
+    try {
+        // Извлекаем параметры из запроса
+        const { search, roleId, balanceMin, balanceMax, sortField, sortOrder, limit, offset } = req.query;
+        console.log(req.query);
+
+        // Создаем объект фильтрации
+        const filter = {
+            roleId: roleId ? parseInt(roleId) : undefined,
+            balanceMin: balanceMin ? parseFloat(balanceMin) : undefined,
+            balanceMax: balanceMax ? parseFloat(balanceMax) : undefined
+        };
+
+        // Получаем пользователей из UserService, передавая параметры фильтрации
+        const users = await UserService.getUsers({
+            search,
+            filter,
+            sortField: sortField || 'name',
+            sortOrder: sortOrder || 'asc',
+            limit: limit ? parseInt(limit) : 10,    // Устанавливаем лимит по умолчанию - 10
+            offset: offset ? parseInt(offset) : 0    // Смещение по умолчанию - 0
+        });
+
+        // Отправляем ответ с данными пользователей
+        res.json(users);
+    } catch (error) {
+        console.error('Ошибка в контроллере при получении пользователей:', error.message);
+        res.status(500).json({ message: 'Ошибка при получении пользователей' });
+    }
+}
+
 export async function importUsersFromSQL(req, res) {
     try {
         const data = req.body;
