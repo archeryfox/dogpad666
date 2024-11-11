@@ -28,6 +28,12 @@ setInterval(sendDatabaseBackup, 12 * 60 * 60 * 1000);  // Отправка ре�
 app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+const allowedOrigins = ['http://localhost:5173'];  // укажите нужные домены
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true // если нужно передавать куки или заголовки авторизации
+}));
 app.use(express.text()); // Добавьте это для парсинга текстовых данных
 app.use(cookieParser());
 app.use(session({secret: 'cool beans', resave: false, saveUninitialized: true}));

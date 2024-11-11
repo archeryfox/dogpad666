@@ -37,6 +37,7 @@ export async function registerUser(req, res) {
                 id: user.id,
                 email: user.email,
                 name: user.name,
+                avatar: user.avatar,
                 role: user.role.name,
                 balance: user.balance
             }
@@ -76,6 +77,7 @@ export async function loginUser(req, res) {
                 id: user.id,
                 email: user.email,
                 name: user.name,
+                avatar: user.avatar,
                 role: user.role.name,
                 balance: user.balance
             }
