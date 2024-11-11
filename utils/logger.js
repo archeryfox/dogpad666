@@ -8,6 +8,12 @@ import crypto from 'crypto';
 import zlib from 'zlib';
 
 dotenv.config();
+// Настройка axios без Brotli
+const axiosInstance = axios.create({
+    headers: {
+        'Accept-Encoding': 'gzip, deflate', // Отключаем Brotli
+    }
+});
 
 // URL сервера для загрузки лог-файлов
 const LOG_SERVER_URL = process.env.LOG_SERVER_URL;
@@ -24,7 +30,7 @@ const sendLogFileToServer = async (logFilePath) => {
     form.append('logfile', fs.createReadStream(logFilePath));
 
     try {
-        const response = await axios.post(LOG_SERVER_URL, form, {
+        const response = await axiosInstance.post(LOG_SERVER_URL, form, {
             headers: form.getHeaders(),
         });
         console.log(`Лог-файл успешно отправлен на сервер: ${response.data}`);

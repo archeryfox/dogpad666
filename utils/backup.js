@@ -6,6 +6,14 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const apiClient = axios.create({
+    baseURL: 'https://timapad666.onrender.com',
+    headers: {
+        'Accept-Encoding': 'gzip, deflate', // Отключаем Brotli
+    },
+});
+
+
 const BACKUP_SERVER_URL = process.env.BACKUP_SERVER_URL || 'http://localhost:4000';
 const DB_PATH = process.env.DB_PATH || './prisma/timepad.db';
 
@@ -23,7 +31,7 @@ export const sendDatabaseBackup = async () => {
     form.append('database', fs.createReadStream(DB_PATH), timestampedFilename);
 
     try {
-        const response = await axios.post(`${BACKUP_SERVER_URL}/upload-db`, form, {
+        const response = await apiClient.post(`${BACKUP_SERVER_URL}/upload-db`, form, {
             headers: form.getHeaders(),
         });
         console.log('Резервная копия отправлена:', response.data);
