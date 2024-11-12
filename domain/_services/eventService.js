@@ -200,11 +200,10 @@ class EventService {
 
     static async getAllEvents() {
         try {
-            const newVar = await prisma.event.findMany({
+            // console.log(newVar)
+            return await prisma.event.findMany({
                 include: this.query
             });
-            console.log(newVar)
-            return newVar;
         } catch (e) {
             logger.error('Ошибка при получении все мероприятия:', e.message);
             throw new Error('Не удалось получить мероприятия');
