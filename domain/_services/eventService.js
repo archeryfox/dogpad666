@@ -110,6 +110,7 @@ class EventService {
     // Создание нового события
     static async createEvent(data) {
         try {
+            data.date= new Date(data.date).toISOString()
             return await prisma.event.create({
                 data: {
                     ...data,
@@ -122,7 +123,7 @@ class EventService {
                 }
             });
         } catch (error) {
-            logger.error('Ошибка при создании события:', error.message);
+            logger.error('Ошибка при создании события:', error);
             throw new Error('Не удалось создать событие');
         }
     }
