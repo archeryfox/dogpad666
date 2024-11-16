@@ -17,10 +17,8 @@ services:
         sync: false
     region: frankfurt
     buildCommand: bun install
-    startCommand: bun run app.js
+    startCommand: bun run app.js # Убедитесь, что ваше приложение слушает на порту, заданном в Render
     healthCheckPath: /health
-    ports:
-      - 8081
     previews:
       generation: manual
 
@@ -34,9 +32,7 @@ services:
         sync: true
     region: frankfurt
     buildCommand: bun install
-    startCommand: npx prisma studio --port 5555
-    ports:
-      - 5555
+    startCommand: npx prisma studio --port $PORT # Используем переменную окружения PORT для указания порта
     healthCheckPath: /health
     previews:
       generation: manual
