@@ -83,14 +83,15 @@ class EventService {
     }
 
     static async exportEventsToSQL() {
-        const events = await prisma.event.findMany({
-            select:
-                {
-                    id: false
-                }
-        });
-        return events.map(event => `INSERT INTO events (name, date) VALUES ('${event.name}', '${event.date}');`).join('\n');
+        const events = await prisma.event.findMany();
+        const fields = Object.keys(events[0]).filter(field => field !== 'id'); // Все поля кроме 'id'
+
+        return events.map(event => {
+            const values = fields.map(field => `'${event[field]}'`).join(', ');
+            return `INSERT INTO events (${fields.join(', ')}) VALUES (${values});`;
+        }).join('\n');
     }
+
 
     static async importEventsFromCSV(csvData) {
         const records = await new Promise((resolve, reject) => {

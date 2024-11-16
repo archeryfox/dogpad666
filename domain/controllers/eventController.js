@@ -1,4 +1,4 @@
-import EventService from '../_services/eventService.js';
+import EventService from '../_services/EventService.js';
 import {prisma} from "../../prisma/prisma.js";
 // D:\WORK\kursTimeBunBackStage\controllers\eventController.js
 // Получить все события с фильтрацией и сортировкой
@@ -103,30 +103,16 @@ export async function importEventsFromSQL(req, res) {
 // Экспорт событий в SQL
 export async function exportEventsToSQL(req, res) {
     try {
-        const events = await prisma.event.findMany({
-            select: {
-                name: true,
-                email: true,
-                password: true,
-                balance: true,
-                roleId: true,
-                roleName: true,
-            },
-        });
+        // Вызов сервиса для получения данных
+        const sqlData = await EventService.exportEventsToSQL();
 
-        let sqlData = '';
-        events.forEach(event => {
-            const values = Object.values(event)
-                .map(value => (typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : value))
-                .join(', ');
-            sqlData += `INSERT INTO events (name, email, password, balance, roleId, roleName) VALUES (${values});\n`;
-        });
-
+        // Отправка файла пользователю
         res.header('Content-Type', 'text/plain');
         res.attachment('events.sql');
         res.send(sqlData);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Ошибка при экспорте событий:', error);
+        res.status(500).json({ error: 'Ошибка при экспорте событий.' });
     }
 }
 

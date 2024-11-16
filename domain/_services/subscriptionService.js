@@ -1,6 +1,6 @@
 // D:\WORK\kursTimeBunBackStage\_services\subscriptionService.js
 import {prisma} from '../../prisma/prisma.js';
-import eventService from "./eventService.js";
+import eventService from "./EventService.js";
 import userService from "./userService.js";
 import logger from "../../utils/logger.js";
 
