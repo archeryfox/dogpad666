@@ -11,6 +11,7 @@ class TransactionService {
     }
 
     static async createTransaction(data) {
+        console.log(data);
         return await prisma.transaction.create({ data });
     }
 

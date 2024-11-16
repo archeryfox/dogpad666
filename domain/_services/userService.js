@@ -9,9 +9,26 @@ import {Readable} from "stream"; // Для работы с потоком дан
 
 class UserService {
     // Получить пользователей с возможностью фильтрации, сортировки и поиска
-    static async getUsers({ search = '', filter = {}, sortField = 'name', sortOrder = 'asc', limit = 10, offset = 0 }) {
+    static query = {
+        role: {
+            select: {
+                name: true // Получаем только имя роли
+            }
+        },
+        Speaker: {
+            select: {
+                id: true, // Получаем только ID спикера
+                name: true, // Также можно добавить имя спикера или другие данные
+                avatar: true, // Также можно добавить имя спикера или другие данные
+                biography: true // Допустим, вы хотите получать биографию спикера
+            }
+        },
+        RoleChangeRequest: true
+    };
+
+    static async getUsers({search = '', filter = {}, sortField = 'name', sortOrder = 'asc', limit = 10, offset = 0}) {
         try {
-            const { roleId, balanceMin, balanceMax } = filter;
+            const {roleId, balanceMin, balanceMax} = filter;
 
             // Составляем условие поиска
             const whereClause = {};
@@ -19,8 +36,8 @@ class UserService {
             // Добавляем фильтр по имени и email, если задан search
             if (search) {
                 whereClause.OR = [
-                    { name: { contains: search} },
-                    { email: { contains: search } }
+                    {name: {contains: search}},
+                    {email: {contains: search}}
                 ];
             }
 
@@ -53,8 +70,17 @@ class UserService {
                         select: {
                             name: true
                         }
-                    }
-                }
+                    },
+                    RoleChangeRequest: {
+                        select: {
+                            id: true,          // ID запроса
+                            requestedRoleId: true, // ID запрашиваемой роли
+                            status: true,       // Статус запроса (например, "pending", "approved", "rejected")
+                            createdAt: true,    // Дата создания запроса
+                            updatedAt: true,    // Дата обновления запроса
+                        },
+                    },
+                },
             });
         } catch (error) {
             console.error('Полная ошибка от Prisma:', error); // Выводим полную информацию об ошибке
@@ -72,7 +98,7 @@ class UserService {
                         select: {
                             name: true
                         }
-                    }
+                    },
                 }
             });
             // Преобразуем данные пользователей в формат CSV
@@ -179,9 +205,11 @@ class UserService {
                     }
                 }
             });
+
             function escapeValue(value) {
                 return value.replace(/'/g, "''"); // Замена одиночных кавычек на двойные
             }
+
             const sqlStatements = users.map(user => {
                 const roleId = user.roleId || 1;
                 return `INSERT INTO User (name, email, password, balance, roleId) VALUES ('${escapeValue(user.name)}', '${escapeValue(user.email)}', '${escapeValue(user.password)}', ${user.balance}, ${roleId});`;
@@ -222,13 +250,7 @@ class UserService {
     static async getAllUsers() {
         try {
             return await prisma.user.findMany({
-                include: {
-                    role: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
+                include: this.query
             });
         } catch (error) {
             logger.error('Ошибка при получении всех пользователей:', error.message);
@@ -245,13 +267,7 @@ class UserService {
             }
             return await prisma.user.findUnique({
                 where: {id},
-                include: {
-                    role: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
+                include: this.query
             });
         } catch (error) {
             logger.error(`Ошибка при получении пользователя с id: ${id}`, error.message);
@@ -264,13 +280,7 @@ class UserService {
         try {
             return await prisma.user.findUnique({
                 where: {email},
-                include: {
-                    role: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
+                include: this.query
             });
         } catch (error) {
             logger.error(`Ошибка при получении пользователя с email: ${email}`, error.message);
@@ -285,14 +295,9 @@ class UserService {
             const user = await prisma.user.findFirst(
                 {
                     where: {name},
-                    include: {
-                        role: {
-                            select: {
-                                name: true
-                            }
-                        }
-                    }
+                    include: this.query
                 });
+            console.log(user.name)
             if (!user) {
                 throw new Error('Пользователь не найден');
             }
@@ -303,8 +308,8 @@ class UserService {
             }
             return user;
         } catch (error) {
-            logger.error('Ошибка при поиске пользователя по имени и паролю:', error.message);
-            throw new Error('Ошибка при поиске пользователя: ' + error.message);
+            logger.error('Ошибка при поиске пользователя по имени и паролю:', error);
+            throw new Error('Ошибка при поиске пользователя: ' + error);
         }
     }
 
@@ -330,7 +335,7 @@ class UserService {
                 }
             });
         } catch (error) {
-            logger.error('Ошибка при создании пользователя:', error.message);
+            logger.error('Ошибка при создании пользователя:', error);
             throw new Error('Не удалось создать пользователя');
         }
     }
@@ -338,12 +343,14 @@ class UserService {
     // Обновить данные пользователя
     static async updateUser(id, data) {
         try {
+            data.roleId -= 0
+            console.log(data);
             return await prisma.user.update({
                 where: {id},
                 data
             });
         } catch (error) {
-            logger.error(`Ошибка при обновлении пользователя с id: ${id}`, error.message);
+            logger.error(`Ошибка при обновлении пользователя с id: ${id}`, error);
             throw new Error('Не удалось обновить данные пользователя');
         }
     }
@@ -360,6 +367,28 @@ class UserService {
         }
     }
 
+    static async getUpdatedUser(userId) {
+        const user = await prisma.user.findUnique({
+            where: {id: userId},
+            include: [{
+                model: RoleChangeRequest,
+                where: {status: 'approved'},
+                order: [['updatedAt', 'DESC']],  // Сортируем по последнему обновлению запроса
+                limit: 1  // Берем только последний одобренный запрос
+            }]
+        });
+
+        if (!user) {
+            throw new Error('Пользователь не найден');
+        }
+
+        // Если есть одобренный запрос на смену роли, меняем роль
+        const approvedRequest = user.RoleChangeRequests[0];
+        const role = approvedRequest ? roles[approvedRequest.requestedRoleId - 1] : roles[user.roleId - 1];
+
+        // Возвращаем пользователя с обновленной ролью
+        return {...user.toJSON(), role};
+    };
 }
 
 export default UserService;

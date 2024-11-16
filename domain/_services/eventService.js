@@ -1,10 +1,12 @@
 import {prisma} from "../../prisma/prisma.js";
 import logger from "../../utils/logger.js";
-import {Parser} from "json2csv";
+// import {parse, Parser} from "json2csv";
+import {parse, stringify} from 'csv';
+import fs from "fs";
 
 class EventService {
     // Условия для включения связанных данных в выборку событий
-    static query =  {
+    static query = {
         venue: true,            // Включаем связанные данные с venue
         organizer: true,        // Включаем связанные данные с organizer
         categories: {
@@ -73,45 +75,45 @@ class EventService {
         }
     }
 
-    // Экспорт событий в SQL
-    static async exportEventsToSQL() {
-        try {
-            const events = await prisma.event.findMany({include: this.query});
-            const sqlStatements = events.map(event => {
-                const title = event.title.replace(/'/g, "''");
-                const description = event.description.replace(/'/g, "''");
-                return `INSERT INTO Event (title, description, date, organizerId, venueId) VALUES ('${title}', '${description}', '${event.date}', ${event.organizerId}, ${event.venueId});`;
-            }).join('\n');
-
-            fs.writeFileSync('events.sql', sqlStatements);
-            console.log('События экспортированы в файл events.sql');
-        } catch (error) {
-            logger.error('Ошибка при экспорте событий в SQL:', error.message);
-            throw new Error('Не удалось экспортировать события');
+    static async importEventsFromSQL(sqlData) {
+        const queries = sqlData.split(';').filter(query => query.trim());
+        for (const query of queries) {
+            await prisma.$executeRawUnsafe(query);
         }
     }
 
-    // Импорт событий из SQL
-    static async importEventsFromSQL(sqlData) {
-        const queries = sqlData.split(';').map(query => query.trim()).filter(query => query);
-        try {
-            await prisma.$executeRawUnsafe('PRAGMA foreign_keys = OFF;');
-            for (const query of queries) {
-                await prisma.$executeRawUnsafe(query);
-            }
-            await prisma.$executeRawUnsafe('PRAGMA foreign_keys = ON;');
-            logger.info('События успешно импортированы из SQL');
-        } catch (error) {
-            logger.error('Ошибка при импорте событий из SQL:', error.message);
-            throw new Error('Ошибка при импорте событий');
+    static async exportEventsToSQL() {
+        const events = await prisma.event.findMany({
+            select:
+                {
+                    id: false
+                }
+        });
+        return events.map(event => `INSERT INTO events (name, date) VALUES ('${event.name}', '${event.date}');`).join('\n');
+    }
+
+    static async importEventsFromCSV(csvData) {
+        const records = await new Promise((resolve, reject) => {
+            parse(csvData, {columns: true}, (err, output) => (err ? reject(err) : resolve(output)));
+        });
+        for (const record of records) {
+            await prisma.event.create({data: record});
         }
+    }
+
+    static async exportEventsToCSV() {
+        const events = await prisma.event.findMany();
+        return stringify(events, {header: true});
     }
 
     // Создание нового события
     static async createEvent(data) {
         try {
-            data.date= new Date(data.date).toISOString()
-            return await prisma.event.create({
+            // Преобразуем дату в формат ISO
+            data.date = new Date(data.date).toISOString();
+
+            // Создаём событие и возвращаем его данные, включая id
+            const event = await prisma.event.create({
                 data: {
                     ...data,
                     categories: {
@@ -122,30 +124,71 @@ class EventService {
                     }
                 }
             });
+
+            // Возвращаем созданное событие, включая id
+            return event;
         } catch (error) {
             logger.error('Ошибка при создании события:', error);
             throw new Error('Не удалось создать событие');
         }
     }
 
+
     // Обновление события
     static async updateEvent(id, data) {
         try {
-            return await prisma.event.update({
-                where: {id},
+            const moscowOffset = 3 * 60 * 60000;
+
+            // Разделяем данные
+            const { categories, speakers, ...eventFields } = data;
+
+            // Обновляем основное событие
+            const updatedEvent = await prisma.event.update({
+                where: { id },
                 data: {
-                    ...data,
-                    categories: {
-                        set: data.categories.map(id => ({id}))
-                    },
-                    speakers: {
-                        set: data.speakers.map(id => ({id}))
-                    }
-                }
+                    ...eventFields,
+                    date: new Date(new Date(data.date).getTime() + moscowOffset).toISOString(),
+                },
             });
+
+            // Удаляем старые связи с категориями
+            await prisma.eventCategory.deleteMany({
+                where: { eventId: id },
+            });
+
+            // Создаём новые связи с категориями
+            if (categories?.length) {
+                const categoryRelations = categories.map((categoryId) => ({
+                    eventId: id,
+                    categoryId: categoryId,
+                }));
+
+                await prisma.eventCategory.createMany({
+                    data: categoryRelations,
+                });
+            }
+
+            // Удаляем старые связи со спикерами
+            await prisma.eventSpeaker.deleteMany({
+                where: { eventId: id },
+            });
+
+            // Создаём новые связи со спикерами
+            if (speakers?.length) {
+                const speakerRelations = speakers.map((speakerId) => ({
+                    eventId: id,
+                    speakerId: speakerId,
+                }));
+
+                await prisma.eventSpeaker.createMany({
+                    data: speakerRelations,
+                });
+            }
+
+            return updatedEvent;
         } catch (error) {
-            logger.error(`Ошибка при обновлении события с id: ${id}`, error.message);
-            throw new Error('Не удалось обновить событие');
+            logger.error(`Ошибка при обновлении события с id: ${id}`, error);
+            throw new Error('Не удалось обновить событие', error);
         }
     }
 
@@ -154,7 +197,7 @@ class EventService {
         try {
             return await prisma.event.delete({where: {id}});
         } catch (error) {
-            logger.error(`Ошибка при удалении события с id: ${id}`, error.message);
+            logger.error(`Ошибка при удалении события с id: ${id}`, error);
             throw new Error('Не удалось удалить событие');
         }
     }
@@ -167,37 +210,11 @@ class EventService {
                 include: this.query
             });
         } catch (error) {
-            logger.error(`Ошибка при получении события с id: ${id}`, error.message);
+            logger.error(`Ошибка при получении события с id: ${id}`, error);
             throw new Error('Не удалось получить событие');
         }
     }
 
-    // Экспортировать события в CSV
-    static async exportEventsToCSV() {
-        const events = await prisma.event.findMany();
-        const parser = new Parser();
-        return parser.parse(events);
-    }
-
-    // Импортировать события из CSV
-    static async importEventsFromCSV(csvData) {
-        const lines = csvData.split('\n');
-        const [header, ...rows] = lines;
-        const headers = header.split(',');
-
-        const events = rows.map(row => {
-            const values = row.split(',');
-            let event = {};
-            headers.forEach((header, index) => {
-                event[header.trim()] = values[index].trim();
-            });
-            return event;
-        });
-
-        for (let event of events) {
-            await prisma.event.create({data: event});
-        }
-    }
 
     static async getAllEvents() {
         try {

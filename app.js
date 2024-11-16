@@ -26,6 +26,7 @@ sendDatabaseBackup()
 // Middleware
 setInterval(sendDatabaseBackup, 12 * 60 * 60 * 1000);  // Отправка резервной копии каждые 12 часов
 app.use(cors({credentials: true, origin: true}));
+app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 const allowedOrigins = ['http://localhost:5173'];  // укажите нужные домены
@@ -69,18 +70,31 @@ import subscriptionsRoutes from './domain/routes/subscriptions.js';
 import transactionsRoutes from './domain/routes/transactionz.js';
 import usersRoutes from './domain/routes/users.js';
 import venuesRoutes from './domain/routes/venues.js';
-// D:\WORK\kursTimeBunBackStage\app.js
 import authRoutes from "./domain/routes/auth.js";
 import {authenticateToken} from "./utils/authMiddleware.js";
+import roleChangeRequestRoutes from "./domain/routes/roleChangeRequestRoutes.js";
+import UserService from "./domain/_services/userService.js";
 
-app.get('/profile', authenticateToken, (req, res) => {
-    res.json({ message: 'Welcome to your profile', user: req.user });
+app.get('/profile', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;  // Получаем id пользователя из токена
+        const user = await UserService.getUserById(userId);  // Ищем пользователя в базе
+        delete user.password
+        if (!user) {
+            return res.status(404).json({error: 'User not found'});
+        }
+
+        res.json(user);  // Отправляем данные о пользователе
+    } catch (err) {
+        res.status(500).json({error: 'Server error'});
+    }
 });
 
 // Добавьте маршрут авторизации
 app.use('/auth', authRoutes);
 
-// Setup routes
+/** Setup routes */
+app.use('/role-change-requests', roleChangeRequestRoutes); // Подключаем маршруты для запросов на смену роли
 app.use('/categories', categoriesRoutes);
 app.use('/events', eventsRoutes);
 app.use('/roles', rolesRoutes);

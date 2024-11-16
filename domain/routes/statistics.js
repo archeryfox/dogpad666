@@ -3,7 +3,7 @@ import { getEventCountByVenue, getSubscriptionsByEvent } from '../controllers/st
 
 const router = express.Router();
 
-router.get('/stats/venues', async (req, res) => {
+router.get('/venues', async (req, res) => {
     try {
         const data = await getEventCountByVenue();
         res.json(data);
@@ -12,7 +12,7 @@ router.get('/stats/venues', async (req, res) => {
     }
 });
 
-router.get('/stats/events', async (req, res) => {
+router.get('/events', async (req, res) => {
     try {
         const data = await getSubscriptionsByEvent();
         res.json(data);
