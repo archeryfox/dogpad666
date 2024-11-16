@@ -12,9 +12,10 @@ import swaggerDocument from './docs/swagger.json' assert {type: "json"};
 import * as dotenv from 'dotenv';
 import logger from "./utils/logger.js";
 import morgan from 'morgan'
+
 dotenv.config(); // Загружаем переменные окружения
-import { sendDatabaseBackup } from './utils/backup.js';
-import { sendLogFile } from './utils/logger.js';
+import {sendDatabaseBackup} from './utils/backup.js';
+import {sendLogFile} from './utils/logger.js';
 
 export const app = express();
 const port = 8081;
@@ -40,7 +41,7 @@ app.use(cookieParser());
 app.use(session({secret: 'cool beans', resave: false, saveUninitialized: true}));
 app.use(methodOverride());
 app.use(express.static('public'));
-app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
+app.use(morgan('combined', {stream: {write: (message) => logger.info(message.trim())}}));
 
 // Swagger setup
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
@@ -56,10 +57,69 @@ app.use((req, res, next) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Set Dust.js as the view engine
+// Set Dust.js as the views engine
 app.engine('dust', adaro.dust());
-app.set('view engine', 'dust');
+app.set('views engine', 'dust');
 app.set('views', path.join(__dirname, 'views'));
+
+app.get('/db', (req, res) => {
+    res.render('prisma.dust')
+})
+const upload = multer({dest: 'uploads/'}); // Папка для временного хранения
+
+app.post('/:entity/import-csv', upload.single('file'), async (req, res) => {
+    try {
+        const {entity} = req.params;
+        if (!req.file) {
+            return res.status(400).send('Файл не загружен');
+        }
+
+        const fileContent = fs.readFileSync(req.file.path, 'utf-8');
+
+        // Вызываем сервис импорта
+        if (entity === 'users') {
+            await UserService.importUsersFromCSV(fileContent);
+        } else {
+            return res.status(400).send(`Импорт для ${entity} не поддерживается`);
+        }
+        // Вызываем сервис импорта
+        if (entity === 'events') {
+            await EventService.importEventsFromCSV(fileContent);
+        } else {
+            return res.status(400).send(`Импорт для ${entity} не поддерживается`);
+        }
+
+        // Удаляем временный файл
+        fs.unlinkSync(req.file.path);
+        res.status(200).send({message: 'Данные успешно импортированы из CSV'});
+    } catch (error) {
+        logger.error('Ошибка при импорте данных:', error);
+        res.status(500).send('Ошибка при обработке файла');
+    }
+});
+
+app.post('/:entity/import-sql', async (req, res) => {
+    try {
+        const {entity} = req.params;
+        const {sqlData} = req.body;
+        if (!sqlData) {
+            return res.status(400).send('SQL данные не предоставлены');
+        }
+
+        if (entity === 'users') {
+            await UserService.importUsersFromSQL(sqlData);
+        } else if (entity === 'events') {
+            await EventService.importEventsFromSQL(sqlData);
+        } else {
+            return res.status(400).send(`Импорт для ${entity} не поддерживается`);
+        }
+
+        res.status(200).send({message: 'SQL данные успешно импортированы'});
+    } catch (error) {
+        logger.error('Ошибка при импорте SQL данных:', error);
+        res.status(500).send('Ошибка при обработке SQL данных');
+    }
+});
 
 // Import routes
 import categoriesRoutes from './domain/routes/categories.js';
@@ -74,6 +134,9 @@ import authRoutes from "./domain/routes/auth.js";
 import {authenticateToken} from "./utils/authMiddleware.js";
 import roleChangeRequestRoutes from "./domain/routes/roleChangeRequestRoutes.js";
 import UserService from "./domain/_services/userService.js";
+import multer from "multer";
+import fs from "fs";
+import EventService from "./domain/_services/EventService.js";
 
 app.get('/profile', authenticateToken, async (req, res) => {
     try {

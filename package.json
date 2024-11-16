@@ -40,7 +40,8 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun nodemon app.js",
+    "dev": "bun nodemon app.js; ",
+    "prod": "bun run app.js && bunx prisma studio",
     "studio": "bunx prisma studio",
     "db": "bunx prisma migrate dev ; bunx prisma db push --name dev",
     "doc": "bun run ./docs/swagger.js"

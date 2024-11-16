@@ -7,11 +7,11 @@ const router = express.Router();
 
 router.get("/f", userController.getFilteredUsers);
 // Роут для импорта пользователей из SQL
-router.post('/import-sql', userController.importUsersFromSQL);
+// router.post('/import-sql', userController.importUsersFromSQL);
 // Роут для экспорта пользователей в SQL
 router.get('/export-sql', userController.exportUsersToSQL);
 // Роут для импорта пользователей из CSV
-router.post('/import-csv', userController.importUsersFromCSV);
+// router.post('/import-csv', userController.importUsersFromCSV);
 // Роут для экспорта пользователей в CSV
 router.get('/export-csv', userController.exportUsers);
 router.get('/', userController.getAllUsers);
