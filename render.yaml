@@ -24,7 +24,6 @@ services:
     previews:
       generation: manual
 
-  # Prisma Studio will be available on another route via the same domain
   - type: web
     name: prisma-studio
     runtime: node
