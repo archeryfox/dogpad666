@@ -17,7 +17,7 @@ services:
         sync: false
     region: frankfurt
     buildCommand: bun install
-    startCommand: concurrently "bun run app.js" "npx prisma studio --port $PORT"
+    startCommand: concurrently "bun run app.js" "npx prisma studio --port 5555"
     healthCheckPath: /health
     previews:
       generation: manual
