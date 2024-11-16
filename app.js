@@ -30,6 +30,7 @@ app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+
 const allowedOrigins = ['http://localhost:5173'];  // укажите нужные домены
 app.use(cors({
     origin: allowedOrigins,
@@ -66,8 +67,6 @@ app.get('/db', (req, res) => {
     res.render('prisma.dust')
 })
 const upload = multer({dest: 'uploads/'}); // Папка для временного хранения
-
-
 
 // Добавьте маршрут для запуска Prisma Studio
 app.get('/prisma', (req, res) => {

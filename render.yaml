@@ -16,15 +16,28 @@ services:
       - key: DATABASE_URL
         sync: false
     region: frankfurt
-    buildCommand: bun i
-    startCommand: bun run app.js && bunx prisma studio
-    routes:
-      - path: /prisma
-        type: proxy
-        destination: "http://localhost:5555"  # Прокси для Prisma Studio
-      - path: /
-        type: proxy
-        destination: "http://localhost:3000"  # Основной веб-сервис, который работает на порту 3000
+    buildCommand: bun install
+    startCommand: bun run app.js
+    healthCheckPath: /health
+    ports:
+      - 8081
     previews:
       generation: manual
-version: "1"
+
+  # Prisma Studio will be available on another route via the same domain
+  - type: web
+    name: prisma-studio
+    runtime: node
+    repo: https://github.com/archeryfox/dogpad666
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: true
+    region: frankfurt
+    buildCommand: bun install
+    startCommand: npx prisma studio --port 5555
+    ports:
+      - 5555
+    healthCheckPath: /health
+    previews:
+      generation: manual
