@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: dogpad-backend
+    runtime: node
+    repo: https://github.com/archeryfox/dogpad666
+    plan: free
+    envVars:
+      - key: LOG_SERVER_URL
+        sync: false
+      - key: BACKUP_SERVER_URL
+        sync: false
+      - key: DB_PATH
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+    region: frankfurt
+    buildCommand: bun i
+    startCommand: bun run app.js && bunx prisma studio
+    routes:
+      - path: /prisma
+        type: proxy
+        destination: "http://localhost:5555"  # Прокси для Prisma Studio
+      - path: /
+        type: proxy
+        destination: "http://localhost:3000"  # Основной веб-сервис, который работает на порту 3000
+    previews:
+      generation: manual
+version: "1"

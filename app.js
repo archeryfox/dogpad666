@@ -12,7 +12,7 @@ import swaggerDocument from './docs/swagger.json' assert {type: "json"};
 import * as dotenv from 'dotenv';
 import logger from "./utils/logger.js";
 import morgan from 'morgan'
-
+import { exec } from 'child_process';
 dotenv.config(); // Загружаем переменные окружения
 import {sendDatabaseBackup} from './utils/backup.js';
 import {sendLogFile} from './utils/logger.js';
@@ -66,6 +66,28 @@ app.get('/db', (req, res) => {
     res.render('prisma.dust')
 })
 const upload = multer({dest: 'uploads/'}); // Папка для временного хранения
+
+
+
+// Добавьте маршрут для запуска Prisma Studio
+app.get('/prisma', (req, res) => {
+    const prismaStudioPort = 5555; // Порт для Prisma Studio
+
+    // Запускаем Prisma Studio
+    const studioProcess = exec(`npx prisma studio --port ${prismaStudioPort}`);
+
+    studioProcess.stdout.on('data', (data) => {
+        console.log(`Prisma Studio: ${data}`);
+    });
+
+    studioProcess.stderr.on('data', (error) => {
+        console.error(`Prisma Studio Error: ${error}`);
+    });
+
+    // Перенаправляем пользователя в Prisma Studio
+    res.redirect(`http://localhost:${prismaStudioPort}`);
+});
+
 
 app.post('/:entity/import-csv', upload.single('file'), async (req, res) => {
     try {
