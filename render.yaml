@@ -17,7 +17,22 @@ services:
         sync: false
     region: frankfurt
     buildCommand: bun install
-    startCommand: concurrently "bun run app.js" "npx prisma studio --port 5555"
+    startCommand: bun run app.js # Убедитесь, что ваше приложение слушает на порту, заданном в Render
+    healthCheckPath: /health
+    previews:
+      generation: manual
+
+  - type: web
+    name: prisma-studio
+    runtime: node
+    repo: https://github.com/archeryfox/dogpad666
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: true
+    region: frankfurt
+    buildCommand: bun install
+    startCommand: npx prisma studio --port $PORT # Используем переменную окружения PORT для указания порта
     healthCheckPath: /health
     previews:
       generation: manual
