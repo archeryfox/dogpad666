@@ -42,7 +42,7 @@
   },
   "scripts": {
     "dev": "bun run app.js ",
-    "prod": "bun run app.js && bunx prisma studio",
+    "prod": "bun run app.js; bunx prisma studio",
     "studio": "bunx prisma studio",
     "db": "bunx prisma migrate dev ; bunx prisma db push --name dev",
     "doc": "bun run ./docs/swagger.js"
