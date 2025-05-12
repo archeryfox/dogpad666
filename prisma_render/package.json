@@ -5,9 +5,9 @@
   "description": "Example Express API that uses Prisma ORM, deployed on Render",
   "main": "index.js",
   "scripts": {
-    "build": "prisma generate",
+    "build": "prisma generate; prisma pull",
     "dev": "PORT=3000 node src/index.js",
-    "start": "node src/index.js"
+    "start": "prisma studio"
   },
   "author": "@jess-render",
   "license": "ISC",
