@@ -1,0 +1,25 @@
+{
+  "name": "prisma-on-render",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Example Express API that uses Prisma ORM, deployed on Render",
+  "main": "index.js",
+  "scripts": {
+    "build": "prisma generate",
+    "dev": "PORT=3000 node src/index.js",
+    "start": "node src/index.js"
+  },
+  "author": "@jess-render",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "6.7.0",
+    "body-parser": "2.2.0",
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "prisma": "6.7.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

@@ -1,0 +1,27 @@
+services:
+- type: web
+  name: express-with-prisma-orm
+  runtime: node
+  plan: free
+  envVars:
+  - key: DATABASE_URL
+    fromDatabase:
+      name: express-with-prisma-orm-db
+      property: connectionString
+  region: oregon # optional: customize this region
+  buildCommand: npm install --production=false
+  startCommand: npm run start
+  preDeployCommand: npx prisma migrate deploy
+
+databases:
+- name: express-with-prisma-orm-db
+  databaseName: express_prisma_db
+  user: express_prisma_db_user
+  plan: free
+  region: oregon
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "16"
+
+version: "1"

@@ -1,0 +1,121 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  email             String              @unique
+  password          String
+  balance           Float               @default(0.0)
+  roleId            Int?                @default(2)
+  avatar            String?
+  events            Event[]             @relation("OrganizerEvents")
+  RoleChangeRequest RoleChangeRequest[]
+  Speaker           Speaker[]
+  subscriptions     Subscription[]
+  transactions      Transaction[]
+  role              Role?               @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id                Int                 @id @default(autoincrement())
+  name              String              @unique
+  RoleChangeRequest RoleChangeRequest[]
+  users             User[]
+}
+
+model RoleChangeRequest {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  requestedRoleId Int
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  role            Role     @relation(fields: [requestedRoleId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+model Event {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  date          DateTime        @default(now())
+  isPaid        Boolean         @default(false)
+  price         Float?
+  organizerId   Int
+  venueId       Int?
+  image         String?
+  venue         Venue?          @relation(fields: [venueId], references: [id])
+  organizer     User            @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  categories    EventCategory[]
+  speakers      EventSpeaker[]
+  subscriptions Subscription[]
+  Transaction   Transaction[]
+}
+
+model Subscription {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  eventId          Int
+  subscriptionDate DateTime
+  event            Event    @relation(fields: [eventId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  userId    Int
+  eventId   Int?
+  createdAt DateTime @default(now())
+  event     Event?   @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Speaker {
+  id        Int            @id @default(autoincrement())
+  name      String
+  biography String
+  userId    Int
+  avatar    String?
+  events    EventSpeaker[]
+  user      User           @relation(fields: [userId], references: [id])
+}
+
+model Category {
+  id     Int             @id @default(autoincrement())
+  name   String
+  events EventCategory[]
+}
+
+model Venue {
+  id       Int     @id @default(autoincrement())
+  name     String
+  address  String
+  capacity Int
+  image    String?
+  events   Event[]
+}
+
+model EventSpeaker {
+  id        Int     @id @default(autoincrement())
+  eventId   Int
+  speakerId Int
+  speaker   Speaker @relation(fields: [speakerId], references: [id])
+  event     Event   @relation(fields: [eventId], references: [id])
+}
+
+model EventCategory {
+  id         Int      @id @default(autoincrement())
+  eventId    Int
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id])
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prisma example</title>
+    <!-- Note: The line below uses Tailwind's Play CDN and is not recommended for production. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div class="py-24" style="background: rgb(12, 52, 75)">
+      <div class="container mx-auto px-6">
+        <h2 class="text-4xl font-bold mb-8 text-white">
+          Prisma example
+        </h2>
+        <button
+          onclick="getApi('')"
+          class="fetch-button focus:outline-none bg-white font-bold rounded-full py-4 px-8 my-2 shadow-lg uppercase tracking-wider"
+        >
+          Check API status
+        </button>
+        <button
+          onclick="getApi('feed')"
+          class="fetch-button focus:outline-none bg-white font-bold rounded-full py-4 px-8 my-2 shadow-lg uppercase tracking-wider"
+        >
+          Load feed
+        </button>
+        <div class="loader invisible"></div>
+      </div>
+    </div>
+
+    <div class="container mx-auto">
+      <pre
+        class="response-container text-white px-8 pt-6 pb-8 bg-black shadow-md invisible"
+      ></pre>
+    </div>
+
+    <script>
+      const responseContainer = document.querySelector('.response-container')
+      const loader = document.querySelector('.loader')
+      function renderResponse(res) {
+        responseContainer.textContent = JSON.stringify(res, null, 2)
+      }
+
+      const getApi = endpoint => {
+        loader.classList.remove('invisible')
+        fetch(`/api/${endpoint}`)
+          .then(function(response) {
+            return response.json()
+          })
+          .then(function(response) {
+            renderResponse(response)
+            responseContainer.classList.remove('invisible')
+            loader.classList.add('invisible')
+          })
+          .catch(function(err) {
+            responseContainer.classList.remove('invisible')
+            responseContainer.textContent = 'Error fetching'
+          })
+          .finally(function() {
+            loader.classList.add('invisible')
+          })
+      }
+    </script>
+  </body>
+</html>
