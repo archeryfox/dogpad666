@@ -77,7 +77,11 @@ class EventCategory {
   +Int categoryId
   +Category category
 }
-
+rectangle A {
+}
+rectangle V {
+}
+A-u->V
 User "1" -- "0..*" Subscription : "subscriptions"
 User "1" -- "0..*" Event : "organizer of events"
 User "1" -- "1" Role : "role"

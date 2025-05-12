@@ -10,12 +10,14 @@ import methodOverride from "method-override";
 import swaggerUI from "swagger-ui-express";
 import swaggerDocument from './docs/swagger.json' assert {type: "json"};
 import * as dotenv from 'dotenv';
+import { register } from './metrics.js';
 import logger from "./utils/logger.js";
 import morgan from 'morgan'
 import { exec } from 'child_process';
+import {sendLogFile} from './utils/logger.js';
+import { metricsMiddleware } from './middleware/metrics.js';
 dotenv.config(); // Загружаем переменные окружения
 import {sendDatabaseBackup} from './utils/backup.js';
-import {sendLogFile} from './utils/logger.js';
 
 export const app = express();
 const port = 8081;
@@ -30,8 +32,9 @@ app.use(cors({credentials: true, origin: true}));
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(metricsMiddleware); // Добавляем middleware для метрик
 
-const allowedOrigins = ['http://localhost:5173'];  // укажите нужные домены
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:8082', 'exp://localhost:8081', 'exp://192.168.1.2:8081'];  // укажите нужные домены
 app.use(cors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -187,6 +190,12 @@ app.use('/subscriptions', subscriptionsRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/users', usersRoutes);
 app.use('/venues', venuesRoutes);
+
+// Эндпоинт для Prometheus
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
 
 // Start the server
 app.listen(port, () => {

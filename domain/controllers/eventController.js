@@ -62,7 +62,8 @@ export async function createEvent(req, res) {
         const event = await EventService.createEvent(req.body);
         res.status(201).json(event);
     } catch (error) {
-        res.status(500).json({error: error});
+        console.error('Error creating event:', error);
+        res.status(500).json({error: error.message || 'Internal server error'});
     }
 }
 
@@ -171,5 +172,3 @@ export async function exportEventsToCSV(req, res) {
         res.status(500).json({ error: 'Не удалось экспортировать события' });
     }
 }
-
-

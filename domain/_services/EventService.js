@@ -110,21 +110,40 @@ class EventService {
     // Создание нового события
     static async createEvent(data) {
         try {
+            // Извлекаем категории и спикеров из данных
+            const { categories = [], speakers = [], ...eventData } = data;
+            
             // Преобразуем дату в формат ISO
-            data.date = new Date(data.date).toISOString();
+            eventData.date = new Date(data.date).toISOString();
 
-            // Создаём событие и возвращаем его данные, включая id
+            // Создаём событие без связей
             const event = await prisma.event.create({
-                data: {
-                    ...data,
-                    categories: {
-                        connect: data.categories.map(id => ({id}))
-                    },
-                    speakers: {
-                        connect: data.speakers.map(id => ({id}))
-                    }
-                }
+                data: eventData
             });
+
+            // Создаём связи с категориями, если они есть
+            if (categories.length > 0) {
+                const categoryRelations = categories.map(categoryId => ({
+                    eventId: event.id,
+                    categoryId: parseInt(categoryId)
+                }));
+                
+                await prisma.eventCategory.createMany({
+                    data: categoryRelations
+                });
+            }
+
+            // Создаём связи со спикерами, если они есть
+            if (speakers.length > 0) {
+                const speakerRelations = speakers.map(speakerId => ({
+                    eventId: event.id,
+                    speakerId: parseInt(speakerId)
+                }));
+                
+                await prisma.eventSpeaker.createMany({
+                    data: speakerRelations
+                });
+            }
 
             // Возвращаем созданное событие, включая id
             return event;

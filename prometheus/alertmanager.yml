@@ -1,0 +1,42 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'your-email@gmail.com'
+  smtp_auth_username: 'your-email@gmail.com'
+  smtp_auth_password: 'your-app-password'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'telegram-notifications'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'telegram-notifications'
+    - match:
+        severity: warning
+      receiver: 'email-notifications'
+
+receivers:
+  - name: 'telegram-notifications'
+    telegram_configs:
+      - bot_token: '7729661964:AAG3DvxibIGCnkdOEG22PXaFo5MOAC0WKcE'
+        chat_id: '7729661964'
+        parse_mode: 'HTML'
+        message: |
+          🚨 <b>{{ .GroupLabels.alertname }}</b>
+          Status: {{ .Status | toUpper }}
+          {{ range .Alerts }}
+          Alert: {{ .Labels.alertname }}
+          Severity: {{ .Labels.severity }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'your-email@gmail.com'
+        send_resolved: true
+        headers:
+          subject: 'Alert: {{ .GroupLabels.alertname }}' 
