@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/categories.js
 // D:\WORK\kursTimeBunBackStage\routes\categories.js
 import express from 'express';
 import {
@@ -5,7 +6,8 @@ import {
     createCategory,
     getCategoryById,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    deleteEventCategoriesByCategoryId
 } from '../controllers/categoryController.js';
 
 const router = express.Router();
@@ -20,5 +22,7 @@ router.get('/:id', getCategoryById);
 router.put('/:id', updateCategory);
 // Маршрут для удаления категории по ID
 router.delete('/:id', deleteCategory);
+// Маршрут для удаления всех связей EventCategory для указанной категории
+router.delete('/:id/event-categories', deleteEventCategoriesByCategoryId);
 
 export default router;

@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/roleController.js
 // D:\WORK\kursTimeBunBackStage\controllers\roleController.js
 import RoleService from '../_services/roleService.js';
 

@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/speakerController.js
 // D:\WORK\kursTimeBunBackStage\controllers\speakerController.js
 import SpeakerService from '../_services/speakerService.js';
 

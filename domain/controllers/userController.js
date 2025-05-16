@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/userController.js
 // D:\WORK\kursTimeBunBackStage\domain\controllers\userController.js
 import UserService from '../_services/userService.js';
 import logger from "../../utils/logger.js";

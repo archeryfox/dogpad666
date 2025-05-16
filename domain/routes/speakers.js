@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/speakers.js
 // D:\WORK\kursTimeBunBackStage\routes\speakers.js
 import express from 'express';
 import {

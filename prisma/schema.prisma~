@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -54,10 +54,10 @@ model Event {
   image         String?
   venue         Venue?          @relation(fields: [venueId], references: [id])
   organizer     User            @relation("OrganizerEvents", fields: [organizerId], references: [id])
-  categories    EventCategory[]
-  speakers      EventSpeaker[]
-  subscriptions Subscription[]
-  Transaction   Transaction[]
+  categories    EventCategory[] @relation(onDelete: Cascade)
+  speakers      EventSpeaker[]  @relation(onDelete: Cascade)
+  subscriptions Subscription[]  @relation(onDelete: Cascade)
+  Transaction   Transaction[]   @relation(onDelete: Cascade)
 }
 
 model Subscription {
@@ -65,7 +65,7 @@ model Subscription {
   userId           Int
   eventId          Int
   subscriptionDate DateTime
-  event            Event    @relation(fields: [eventId], references: [id])
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user             User     @relation(fields: [userId], references: [id])
 }
 
@@ -75,7 +75,7 @@ model Transaction {
   userId    Int
   eventId   Int?
   createdAt DateTime @default(now())
-  event     Event?   @relation(fields: [eventId], references: [id])
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
 }
 
@@ -109,7 +109,7 @@ model EventSpeaker {
   eventId   Int
   speakerId Int
   speaker   Speaker @relation(fields: [speakerId], references: [id])
-  event     Event   @relation(fields: [eventId], references: [id])
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model EventCategory {
@@ -117,5 +117,5 @@ model EventCategory {
   eventId    Int
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])
-  event      Event    @relation(fields: [eventId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }

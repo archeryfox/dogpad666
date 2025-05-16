@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/statsController.js
 // Пример: Подсчёт количества мероприятий по каждому месту
 export const getEventCountByVenue = async () => {
     return await prisma.venue.findMany({

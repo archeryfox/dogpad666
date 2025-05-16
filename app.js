@@ -1,3 +1,4 @@
+// dogpad.backend/app.js
 import express from 'express';
 import adaro from 'adaro';
 import path from 'path';
@@ -19,6 +20,7 @@ import { register } from './metrics.js';
 import logger, { sendLogFile } from './utils/logger.js';
 import { metricsMiddleware } from './middleware/metrics.js';
 import { sendDatabaseBackup } from './utils/backup.js';
+import { errorHandler, notFoundHandler, asyncErrorHandler } from './middleware/errorHandler.js';
 
 import categoriesRoutes from './domain/routes/categories.js';
 import eventsRoutes from './domain/routes/events.js';
@@ -30,6 +32,8 @@ import usersRoutes from './domain/routes/users.js';
 import venuesRoutes from './domain/routes/venues.js';
 import authRoutes from './domain/routes/auth.js';
 import roleChangeRequestRoutes from './domain/routes/roleChangeRequestRoutes.js';
+import eventCategoriesRoutes from './domain/routes/eventCategories.js';
+import databaseRoutes from './domain/routes/database.js';
 
 import UserService from './domain/_services/userService.js';
 import EventService from './domain/_services/EventService.js';
@@ -92,7 +96,7 @@ app.get('/prisma', (req, res) => {
     res.redirect(`http://localhost:${prismaStudioPort}`);
 });
 
-app.post('/:entity/import-csv', upload.single('file'), async (req, res) => {
+app.post('/:entity/import-csv', upload.single('file'), asyncErrorHandler(async (req, res) => {
     const { entity } = req.params;
     if (!req.file) {
         return res.status(400).send('Файл не загружен');
@@ -117,11 +121,12 @@ app.post('/:entity/import-csv', upload.single('file'), async (req, res) => {
         res.status(200).send({ message: 'Данные успешно импортированы из CSV' });
     } catch (error) {
         logger.error('Ошибка при импорте данных:', error);
-        res.status(500).send('Ошибка при обработке файла');
+        fs.unlinkSync(req.file.path);
+        throw error;
     }
-});
+}));
 
-app.post('/:entity/import-sql', async (req, res) => {
+app.post('/:entity/import-sql', asyncErrorHandler(async (req, res) => {
     const { entity } = req.params;
     const { sqlData } = req.body;
 
@@ -129,37 +134,34 @@ app.post('/:entity/import-sql', async (req, res) => {
         return res.status(400).send('SQL данные не предоставлены');
     }
 
-    try {
-        switch (entity) {
-            case 'users':
-                await UserService.importUsersFromSQL(sqlData);
-                break;
-            case 'events':
-                await EventService.importEventsFromSQL(sqlData);
-                break;
-            default:
-                return res.status(400).send(`Импорт для ${entity} не поддерживается`);
-        }
-
-        res.status(200).send({ message: 'SQL данные успешно импортированы' });
-    } catch (error) {
-        logger.error('Ошибка при импорте SQL данных:', error);
-        res.status(500).send('Ошибка при обработке SQL данных');
+    switch (entity) {
+        case 'users':
+            await UserService.importUsersFromSQL(sqlData);
+            break;
+        case 'events':
+            await EventService.importEventsFromSQL(sqlData);
+            break;
+        default:
+            return res.status(400).send(`Импорт для ${entity} не поддерживается`);
     }
-});
 
-app.get('/profile', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-        const user = await UserService.getUserById(userId);
-        if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).send({ message: 'SQL данные успешно импортированы' });
+}));
 
-        delete user.password;
-        res.json(user);
-    } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+app.get('/profile', authenticateToken, asyncErrorHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const user = await UserService.getUserById(userId);
+    if (!user) {
+        return res.status(404).json({ 
+            error: 'Пользователь не найден',
+            timestamp: new Date().toISOString(),
+            path: req.originalUrl
+        });
     }
-});
+
+    delete user.password;
+    res.json(user);
+}));
 
 // Main routes
 app.use('/auth', authRoutes);
@@ -172,12 +174,18 @@ app.use('/subscriptions', subscriptionsRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/users', usersRoutes);
 app.use('/venues', venuesRoutes);
+app.use('/event-categories', eventCategoriesRoutes);
+app.use('/database', databaseRoutes);
 
 // Prometheus endpoint
 app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
 });
+
+// Error handling middleware (must be after all routes)
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {

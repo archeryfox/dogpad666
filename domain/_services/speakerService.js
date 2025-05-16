@@ -1,3 +1,4 @@
+// dogpad.backend/domain/_services/speakerService.js
 import {prisma} from '../../prisma/prisma.js';
 
 class SpeakerService {

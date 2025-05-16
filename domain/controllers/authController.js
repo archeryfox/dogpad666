@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/authController.js
 // D:\WORK\kursTimeBunBackStage\controllers\authController.js
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -23,8 +24,11 @@ export async function registerUser(req, res) {
             email,
             password: hashedPassword,
             name,
+            roleId: 2, // Установка роли по умолчанию (user)
         });
 
+        // Получение полной информации о пользователе, включая связанные данные
+        const userWithDetails = await UserService.getUserById(user.id);
 
         // Генерация JWT токена
         const token = jwt.sign({userId: user.id}, process.env.JWT_SECRET, {
@@ -38,15 +42,15 @@ export async function registerUser(req, res) {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                avatar: user.avatar,
-                role: user.role.name,
-                roleId: user.roleId,
-                balance: user.balance,
-                RoleChangeRequest: user.RoleChangeRequest
+                avatar: user.avatar || null,
+                role: userWithDetails && userWithDetails.role ? userWithDetails.role.name : 'user',
+                roleId: user.roleId || 2,
+                balance: user.balance || 0,
+                RoleChangeRequest: userWithDetails && userWithDetails.RoleChangeRequest ? userWithDetails.RoleChangeRequest : []
             }
         });
     } catch (error) {
-        logger.error(error);
+        logger.error(`Registration error: ${error.message}`);
         res.status(500).json({error: error.message});
     }
 }

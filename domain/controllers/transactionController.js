@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/transactionController.js
 // D:\WORK\kursTimeBunBackStage\controllers\transactionController.js
 import TransactionService from '../_services/transactionService.js';
 
@@ -25,6 +26,25 @@ export async function createTransaction(req, res) {
         const transaction = await TransactionService.createTransaction(req.body);
         res.status(201).json(transaction);
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+// Новый метод для создания транзакции и обновления баланса
+export async function createTransactionAndUpdateBalance(req, res) {
+    try {
+        const result = await TransactionService.createTransactionAndUpdateBalance(req.body);
+        res.status(201).json(result);
+    } catch (error) {
+        // Возвращаем более информативную ошибку
+        if (error.message.includes('Недостаточно средств')) {
+            return res.status(400).json({ error: error.message });
+        } else if (error.message.includes('не найдены')) {
+            return res.status(404).json({ error: error.message });
+        } else if (error.message.includes('не соответствует')) {
+            return res.status(400).json({ error: error.message });
+        }
+        
         res.status(500).json({ error: error.message });
     }
 }

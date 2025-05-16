@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/statistics.js
 import express from 'express';
 import { getEventCountByVenue, getSubscriptionsByEvent } from '../controllers/statsController.js';
 

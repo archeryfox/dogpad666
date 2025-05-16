@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/transactionz.js
 // D:\WORK\kursTimeBunBackStage\routes\transactionz.js
 import express from 'express';
 import {
@@ -5,7 +6,8 @@ import {
     getTransactionById,
     createTransaction,
     updateTransaction,
-    deleteTransaction
+    deleteTransaction,
+    createTransactionAndUpdateBalance
 } from '../controllers/transactionController.js';
 
 const router = express.Router();
@@ -13,6 +15,7 @@ const router = express.Router();
 router.get('/', getAllTransactions);
 router.get('/:id', getTransactionById);
 router.post('/', createTransaction);
+router.post('/payment', createTransactionAndUpdateBalance); // Новый маршрут для платежей
 router.put('/:id', updateTransaction);
 router.delete('/:id', deleteTransaction);
 
