@@ -1,70 +1,53 @@
-import {prisma} from "../../prisma/prisma.js";
+// dogpad.backend/domain/_services/EventService.js
+import { prisma } from "../../prisma/prisma.js";
 import logger from "../../utils/logger.js";
-// import {parse, Parser} from "json2csv";
-import {parse, stringify} from 'csv';
-import fs from "fs";
+import { parse, stringify } from 'csv';
 
 class EventService {
-    // Условия для включения связанных данных в выборку событий
     static query = {
-        venue: true,            // Включаем связанные данные с venue
-        organizer: true,        // Включаем связанные данные с organizer
+        venue: true,
+        organizer: true,
         categories: {
             select: {
-                category: {         // Если `speaker` — это название связи в модели `EventSpeaker`
-                    select: {
-                        id: 1,// Получаем поле name через связанную модель
-                        name: 1,// Получаем поле name через связанную модель
-                    }
+                category: {
+                    select: { id: true, name: true }
                 }
             }
-        },       // Включаем связанные данные с categories
+        },
         speakers: {
             select: {
-                speaker: {         // Если `speaker` — это название связи в модели `EventSpeaker`
+                speaker: {
                     select: {
-                        name: 1,
-                        user: true  // Получаем поле name через связанную модель
+                        name: true,
+                        user: true
                     }
                 }
             }
         },
-        subscriptions: true,    // Включаем связанные данные с subscriptions
+        subscriptions: true,
         Transaction: true,
         _count: true
     };
 
-    // Получить список событий с возможностью фильтрации и сортировки
-    static async getFilteredEvents({
-                                       search = '',
-                                       filter = {},
-                                       sortField = 'title',
-                                       sortOrder = 'asc',
-                                       limit = 10,
-                                       offset = 0
-                                   }) {
+    static async getFilteredEvents({ search = '', filter = {}, sortField = 'title', sortOrder = 'asc', limit = 10, offset = 0 }) {
         try {
-            const {categoryId, organizerId, dateRange} = filter;
+            const { categoryId, organizerId, dateRange } = filter;
             const whereClause = {};
 
             if (search) {
                 whereClause.OR = [
-                    {name: {contains: search}},
-                    {description: {contains: search}}
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } }
                 ];
             }
 
-            if (categoryId) whereClause.categories = {some: {id: categoryId}};
+            if (categoryId) whereClause.categories = { some: { categoryId } };
             if (organizerId) whereClause.organizerId = organizerId;
-            if (dateRange) whereClause.date = {gte: dateRange.start, lte: dateRange.end};
-
-            const orderBy = {
-                [sortField]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc'
-            };
+            if (dateRange) whereClause.date = { gte: dateRange.start, lte: dateRange.end };
 
             return await prisma.event.findMany({
                 where: whereClause,
-                orderBy,
+                orderBy: { [sortField]: sortOrder.toLowerCase() === 'desc' ? 'desc' : 'asc' },
                 skip: offset,
                 take: limit,
                 include: this.query
@@ -84,7 +67,7 @@ class EventService {
 
     static async exportEventsToSQL() {
         const events = await prisma.event.findMany();
-        const fields = Object.keys(events[0]).filter(field => field !== 'id'); // Все поля кроме 'id'
+        const fields = Object.keys(events[0] || {}).filter(f => f !== 'id');
 
         return events.map(event => {
             const values = fields.map(field => `'${event[field]}'`).join(', ');
@@ -92,141 +75,112 @@ class EventService {
         }).join('\n');
     }
 
-
     static async importEventsFromCSV(csvData) {
         const records = await new Promise((resolve, reject) => {
-            parse(csvData, {columns: true}, (err, output) => (err ? reject(err) : resolve(output)));
+            parse(csvData, { columns: true }, (err, output) => (err ? reject(err) : resolve(output)));
         });
         for (const record of records) {
-            await prisma.event.create({data: record});
+            await prisma.event.create({ data: record });
         }
     }
 
     static async exportEventsToCSV() {
         const events = await prisma.event.findMany();
-        return stringify(events, {header: true});
+        return stringify(events, { header: true });
     }
 
-    // Создание нового события
     static async createEvent(data) {
         try {
-            // Извлекаем категории и спикеров из данных
-            const { categories = [], speakers = [], ...eventData } = data;
-            
-            // Преобразуем дату в формат ISO
-            eventData.date = new Date(data.date).toISOString();
+            const { categories = [], speakers = [], date, ...eventData } = data;
 
-            // Создаём событие без связей
-            const event = await prisma.event.create({
-                data: eventData
+            const createdEvent = await prisma.event.create({
+                data: {
+                    ...eventData,
+                    date: new Date(date).toISOString()
+                }
             });
 
-            // Создаём связи с категориями, если они есть
             if (categories.length > 0) {
-                const categoryRelations = categories.map(categoryId => ({
-                    eventId: event.id,
-                    categoryId: parseInt(categoryId)
-                }));
-                
                 await prisma.eventCategory.createMany({
-                    data: categoryRelations
+                    data: categories.map(categoryId => ({
+                        eventId: createdEvent.id,
+                        categoryId: parseInt(categoryId)
+                    }))
                 });
             }
 
-            // Создаём связи со спикерами, если они есть
             if (speakers.length > 0) {
-                const speakerRelations = speakers.map(speakerId => ({
-                    eventId: event.id,
-                    speakerId: parseInt(speakerId)
-                }));
-                
                 await prisma.eventSpeaker.createMany({
-                    data: speakerRelations
+                    data: speakers.map(speakerId => ({
+                        eventId: createdEvent.id,
+                        speakerId: parseInt(speakerId)
+                    }))
                 });
             }
 
-            // Возвращаем созданное событие, включая id
-            return event;
+            return createdEvent;
         } catch (error) {
             logger.error('Ошибка при создании события:', error);
             throw new Error('Не удалось создать событие');
         }
     }
 
-
-    // Обновление события
     static async updateEvent(id, data) {
         try {
-            const moscowOffset = 3 * 60 * 60000;
+            const { categories = [], speakers = [], date, ...eventData } = data;
 
-            // Разделяем данные
-            const { categories, speakers, ...eventFields } = data;
-
-            // Обновляем основное событие
             const updatedEvent = await prisma.event.update({
                 where: { id },
                 data: {
-                    ...eventFields,
-                    date: new Date(new Date(data.date).getTime() + moscowOffset).toISOString(),
-                },
+                    ...eventData,
+                    date: new Date(date).toISOString()
+                }
             });
 
-            // Удаляем старые связи с категориями
-            await prisma.eventCategory.deleteMany({
-                where: { eventId: id },
-            });
-
-            // Создаём новые связи с категориями
-            if (categories?.length) {
-                const categoryRelations = categories.map((categoryId) => ({
-                    eventId: id,
-                    categoryId: categoryId,
-                }));
-
+            await prisma.eventCategory.deleteMany({ where: { eventId: id } });
+            if (categories.length > 0) {
                 await prisma.eventCategory.createMany({
-                    data: categoryRelations,
+                    data: categories.map(categoryId => ({
+                        eventId: id,
+                        categoryId: parseInt(categoryId)
+                    }))
                 });
             }
 
-            // Удаляем старые связи со спикерами
-            await prisma.eventSpeaker.deleteMany({
-                where: { eventId: id },
-            });
-
-            // Создаём новые связи со спикерами
-            if (speakers?.length) {
-                const speakerRelations = speakers.map((speakerId) => ({
-                    eventId: id,
-                    speakerId: speakerId,
-                }));
-
+            await prisma.eventSpeaker.deleteMany({ where: { eventId: id } });
+            if (speakers.length > 0) {
                 await prisma.eventSpeaker.createMany({
-                    data: speakerRelations,
+                    data: speakers.map(speakerId => ({
+                        eventId: id,
+                        speakerId: parseInt(speakerId)
+                    }))
                 });
             }
 
             return updatedEvent;
         } catch (error) {
             logger.error(`Ошибка при обновлении события с id: ${id}`, error);
-            throw new Error('Не удалось обновить событие', error);
+            throw new Error('Не удалось обновить событие');
         }
     }
 
-    // Удаление события
     static async deleteEvent(id) {
         try {
-            return await prisma.event.delete({where: {id}});
+            // Удаляем связанные категории и спикеров перед удалением события
+            await prisma.eventCategory.deleteMany({ where: { eventId: id } });
+            await prisma.eventSpeaker.deleteMany({ where: { eventId: id } });
+
+            return await prisma.event.delete({ where: { id } });
         } catch (error) {
             logger.error(`Ошибка при удалении события с id: ${id}`, error);
             throw new Error('Не удалось удалить событие');
         }
     }
 
-    // Получение события по ID
     static async getEventById(id) {
         try {
             return await prisma.event.findUnique({
-                where: {id},
+                where: { id },
                 include: this.query
             });
         } catch (error) {
@@ -235,18 +189,15 @@ class EventService {
         }
     }
 
-
     static async getAllEvents() {
         try {
-            // console.log(newVar)
             return await prisma.event.findMany({
                 include: this.query
             });
         } catch (e) {
-            logger.error('Ошибка при получении все мероприятия:', e.message);
+            logger.error('Ошибка при получении всех мероприятий:', e.message);
             throw new Error('Не удалось получить мероприятия');
         }
-
     }
 }
 

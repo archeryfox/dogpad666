@@ -1,92 +1,109 @@
+// dogpad.backend/domain/controllers/eventController.js
 import EventService from '../_services/EventService.js';
-import {prisma} from "../../prisma/prisma.js";
-// D:\WORK\kursTimeBunBackStage\controllers\eventController.js
+import { prisma } from "../../prisma/prisma.js";
+import logger from '../../utils/logger.js';
+import { Parser } from "json2csv";
+
 // Получить все события с фильтрацией и сортировкой
-
-import {Parser} from "json2csv";
-
 export async function getFilteredEvents(req, res) {
     try {
-        // Извлекаем параметры из запроса
-        const {search, categoryId, dateMin, dateMax, sortField, sortOrder, limit, offset} = req.query;
-        console.log(req.query);
+        const { search, categoryId, dateMin, dateMax, sortField, sortOrder, limit, offset } = req.query;
 
-        // Создаем объект фильтрации
         const filter = {
             categoryId: categoryId ? parseInt(categoryId) : undefined,
-            dateMin: dateMin ? new Date(dateMin) : undefined,
-            dateMax: dateMax ? new Date(dateMax) : undefined
+            dateRange: (dateMin && dateMax) ? {
+                start: new Date(dateMin),
+                end: new Date(dateMax)
+            } : undefined
         };
 
-        // Получаем события из EventService, передавая параметры фильтрации
         const events = await EventService.getFilteredEvents({
             search,
             filter,
-            sortField: sortField || 'name',  // Сортируем по имени по умолчанию
-            sortOrder: sortOrder || 'asc',   // Сортировка по возрастанию по умолчанию
-            limit: limit ? parseInt(limit) : 10,  // Устанавливаем лимит по умолчанию - 10
-            offset: offset ? parseInt(offset) : 0  // Смещение по умолчанию - 0
+            sortField: sortField || 'name',
+            sortOrder: sortOrder || 'asc',
+            limit: limit ? parseInt(limit) : 10,
+            offset: offset ? parseInt(offset) : 0
         });
 
-        // Отправляем ответ с данными событий
         res.json(events);
     } catch (error) {
-        console.error('Ошибка в контроллере при получении событий:', error);
-        res.status(500).json({message: 'Ошибка при получении событий'});
+        logger.error('Ошибка в контроллере при получении событий:', error);
+        res.status(500).json({ message: 'Ошибка при получении событий' });
     }
 }
 
 export async function getAllEvents(req, res) {
     try {
-        const events = await EventService.getAllEvents()
+        const events = await EventService.getAllEvents();
         res.json(events);
     } catch (error) {
-        res.status(500).json({error: error});
+        logger.error('Ошибка при получении всех событий:', error);
+        res.status(500).json({ error: error.message || 'Ошибка получения всех событий' });
     }
 }
 
-// Получить событие по ID
 export async function getEventById(req, res) {
     try {
-        const event = await EventService.getEventById(parseInt(req.params.id));
-        if (!event) return res.status(404).json({error: 'Event not found'});
+        const eventId = parseInt(req.params.id);
+        if (isNaN(eventId)) return res.status(400).json({ error: 'Неверный формат ID' });
+
+        const event = await EventService.getEventById(eventId);
+        if (!event) return res.status(404).json({ error: 'Событие не найдено' });
+
         res.json(event);
     } catch (error) {
-        res.status(500).json({error: error});
+        logger.error(`Ошибка при получении события с ID ${req.params.id}:`, error);
+        res.status(500).json({ error: error.message });
     }
 }
 
-// Создать новое событие
 export async function createEvent(req, res) {
     try {
         const event = await EventService.createEvent(req.body);
         res.status(201).json(event);
     } catch (error) {
-        console.error('Error creating event:', error);
-        res.status(500).json({error: error.message || 'Internal server error'});
+        logger.error('Ошибка при создании события:', error);
+        res.status(500).json({ error: error.message || 'Ошибка при создании события' });
     }
 }
 
-// Обновить событие по ID
 export async function updateEvent(req, res) {
     try {
-        console.log(req.body);
-        const event = await EventService.updateEvent(parseInt(req.params.id), req.body);
+        const eventId = parseInt(req.params.id);
+        if (isNaN(eventId)) return res.status(400).json({ error: 'Неверный формат ID' });
+
+        const event = await EventService.updateEvent(eventId, req.body);
         res.json(event);
     } catch (error) {
-        res.status(500).json({error: error.message});
+        logger.error(`Ошибка при обновлении события с ID ${req.params.id}:`, error);
+        res.status(500).json({ error: error.message || 'Ошибка при обновлении события' });
     }
 }
 
-// Удалить событие по ID
 export async function deleteEvent(req, res) {
     try {
-        await EventService.deleteEvent(parseInt(req.params.id));
+        const eventId = parseInt(req.params.id);
+        if (isNaN(eventId)) {
+            return res.status(400).json({ error: 'Неверный формат ID события' });
+        }
+
+        const event = await EventService.getEventById(eventId);
+        if (!event) {
+            return res.status(404).json({ error: 'Событие не найдено' });
+        }
+
+        await EventService.deleteEvent(eventId);
         res.status(204).end();
     } catch (error) {
-        res.status(500).json({error: error});
+        logger.error(`Ошибка при удалении события с ID ${req.params.id}:`, error);
+        res.status(500).json({
+            error: error.message || 'Произошла ошибка при удалении события',
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
+
 export async function importEventsFromSQL(req, res) {
     if (!req.file) {
         return res.status(400).json({ error: 'Файл не предоставлен' });
@@ -96,27 +113,22 @@ export async function importEventsFromSQL(req, res) {
         await EventService.importEventsFromSQL(sqlData);
         res.status(200).json({ message: 'События успешно импортированы из SQL' });
     } catch (error) {
-        console.error('Ошибка импорта SQL:', error);
+        logger.error('Ошибка при импорте данных из SQL:', error);
         res.status(500).json({ error: 'Ошибка импорта данных из SQL' });
     }
 }
 
-// Экспорт событий в SQL
 export async function exportEventsToSQL(req, res) {
     try {
-        // Вызов сервиса для получения данных
         const sqlData = await EventService.exportEventsToSQL();
-
-        // Отправка файла пользователю
         res.header('Content-Type', 'text/plain');
         res.attachment('events.sql');
         res.send(sqlData);
     } catch (error) {
-        console.error('Ошибка при экспорте событий:', error);
+        logger.error('Ошибка при экспорте событий в SQL:', error);
         res.status(500).json({ error: 'Ошибка при экспорте событий.' });
     }
 }
-
 
 export async function importEventsFromCSV(req, res) {
     if (!req.file) {
@@ -127,48 +139,19 @@ export async function importEventsFromCSV(req, res) {
         await EventService.importEventsFromCSV(csvData);
         res.status(200).json({ message: 'События успешно импортированы из CSV' });
     } catch (error) {
-        console.error('Ошибка импорта CSV:', error);
+        logger.error('Ошибка при импорте CSV:', error);
         res.status(500).json({ error: 'Ошибка импорта данных из CSV' });
     }
 }
 
-
-
 export async function exportEventsToCSV(req, res) {
     try {
-        const events = await prisma.event.findMany({
-            select: {
-                name: true,
-                description: true,
-                date: true,
-                isPaid: true,
-                price: true,
-                image: true,
-                organizerId: true,
-                venueId: true,
-            },
-        });
-
-        // Конвертация данных в CSV
-        const fields = [
-            'name',
-            'description',
-            'date',
-            'isPaid',
-            'price',
-            'image',
-            'organizerId',
-            'venueId',
-        ];
-        const json2csvParser = new Parser({ fields });
-        const csv = json2csvParser.parse(events);
-
-        // Установка заголовков и отправка CSV-файла
+        const csvData = await EventService.exportEventsToCSV();
         res.header('Content-Type', 'text/csv');
         res.attachment('events.csv');
-        res.send(csv);
+        res.send(csvData);
     } catch (error) {
-        console.error('Ошибка экспорта событий в CSV:', error);
+        logger.error('Ошибка экспорта событий в CSV:', error);
         res.status(500).json({ error: 'Не удалось экспортировать события' });
     }
 }

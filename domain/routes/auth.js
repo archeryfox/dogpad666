@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/auth.js
 // D:\WORK\kursTimeBunBackStage\routes/auth.js
 import express from 'express';
 import {registerUser, loginUser, getUpdatedUser} from '../controllers/authController.js';

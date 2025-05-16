@@ -1,3 +1,4 @@
+// dogpad.backend/utils/authMiddleware.js
 // D:\WORK\kursTimeBunBackStage\utils/authMiddleware.js
 import jwt from 'jsonwebtoken';
 import userController from "../domain/controllers/userController.js";

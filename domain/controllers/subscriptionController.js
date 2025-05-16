@@ -1,3 +1,4 @@
+// dogpad.backend/domain/controllers/subscriptionController.js
 // D:\WORK\kursTimeBunBackStage\controllers\subscriptionController.js
 import SubscriptionService from '../_services/subscriptionService.js';
 

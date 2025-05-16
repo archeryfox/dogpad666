@@ -1,3 +1,4 @@
+// dogpad.backend/utils/logger.js
 import { createLogger, format, transports } from 'winston';
 import axios from 'axios';
 import FormData from 'form-data';
@@ -76,26 +77,141 @@ const getLogFileName = () => {
     // Форматируем дату в нужный формат YYYY-MM-DD
     const formattedDate = moscowTime.toISOString().split('T')[0];
 
-    console.log(formattedDate); // Проверка времени
     return path.join(logDirectory, `app-${formattedDate}.log`);
 };
 
+// Форматирование объекта для вывода в лог
+const formatObject = (obj) => {
+    if (obj instanceof Error) {
+        return {
+            message: obj.message,
+            name: obj.name,
+            stack: obj.stack,
+            ...(obj.code && { code: obj.code })
+        };
+    }
+    return obj;
+};
+
+// Форматирование сообщения для структурированного логирования
+const formatMessage = format((info) => {
+    // Если сообщение содержит объекты, форматируем их
+    const meta = {};
+    let hasMetaData = false;
+    
+    for (const key in info) {
+        if (key !== 'level' && key !== 'message' && key !== 'timestamp' && key !== 'service') {
+            meta[key] = formatObject(info[key]);
+            hasMetaData = true;
+        }
+    }
+    
+    // Если есть метаданные, добавляем их к сообщению
+    if (hasMetaData) {
+        info.meta = meta;
+    }
+    
+    return info;
+});
+
 // Настройка логгера для записи в файл с динамическим именем
 const logger = createLogger({
-    level: 'info',
+    level: process.env.LOG_LEVEL || 'info',
+    defaultMeta: { service: 'dogpad-backend' },
     format: format.combine(
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        format.printf(({ timestamp, level, message }) => {
-            return `${timestamp} [${level.toUpperCase()}]: ${message}`;
-        })
+        formatMessage(),
+        format.errors({ stack: true }),
+        format.splat(),
+        format.json()
     ),
     transports: [
-        new transports.Console(), // Печать логов в консоль
+        new transports.Console({
+            format: format.combine(
+                format.colorize(),
+                format.printf(({ timestamp, level, message, meta, service }) => {
+                    let logMessage = `${timestamp} [${service}] [${level}]: ${message}`;
+                    if (meta) {
+                        logMessage += ` ${JSON.stringify(meta, null, 0)}`;
+                    }
+                    return logMessage;
+                })
+            )
+        }),
         new transports.File({
-            filename: getLogFileName(), // Динамическое имя файла лога
-        }) // Запись в файл
+            filename: getLogFileName(),
+            format: format.combine(
+                format.printf(({ timestamp, level, message, meta, service }) => {
+                    let logMessage = `${timestamp} [${service}] [${level}]: ${message}`;
+                    if (meta) {
+                        logMessage += ` ${JSON.stringify(meta, null, 2)}`;
+                    }
+                    return logMessage;
+                })
+            )
+        })
+    ],
+    exceptionHandlers: [
+        new transports.File({ 
+            filename: path.join(logDirectory, 'exceptions.log'),
+            format: format.combine(
+                format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                format.json()
+            )
+        })
+    ],
+    rejectionHandlers: [
+        new transports.File({ 
+            filename: path.join(logDirectory, 'rejections.log'),
+            format: format.combine(
+                format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+                format.json()
+            )
+        })
     ]
 });
+
+// Добавляем удобные методы для структурированного логирования
+const enhancedLogger = {
+    error: (message, meta = {}) => logger.error(message, meta),
+    warn: (message, meta = {}) => logger.warn(message, meta),
+    info: (message, meta = {}) => logger.info(message, meta),
+    debug: (message, meta = {}) => logger.debug(message, meta),
+    
+    // Методы для логирования с контекстом запроса
+    httpError: (req, message, meta = {}) => {
+        const requestInfo = {
+            method: req.method,
+            url: req.originalUrl,
+            ip: req.ip,
+            userId: req.user?.id,
+            ...meta
+        };
+        logger.error(`[HTTP] ${message}`, requestInfo);
+    },
+    
+    httpInfo: (req, message, meta = {}) => {
+        const requestInfo = {
+            method: req.method,
+            url: req.originalUrl,
+            ip: req.ip,
+            userId: req.user?.id,
+            ...meta
+        };
+        logger.info(`[HTTP] ${message}`, requestInfo);
+    },
+    
+    // Метод для логирования ошибок базы данных
+    dbError: (operation, error, meta = {}) => {
+        const dbInfo = {
+            operation,
+            errorCode: error.code,
+            errorMessage: error.message,
+            ...meta
+        };
+        logger.error(`[DB] Error during ${operation}`, dbInfo);
+    }
+};
 
 const getLastLogFile = () => {
     const files = fs.readdirSync(logDirectory)
@@ -166,6 +282,5 @@ export const sendLogFile = async () => {
     sendLogFileToServer(lastLogFile);
 };
 
-
 // Экспортируем logger для использования в других частях приложения
-export default logger;
+export default enhancedLogger;

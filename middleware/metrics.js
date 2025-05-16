@@ -1,3 +1,4 @@
+// dogpad.backend/middleware/metrics.js
 import { httpRequestDuration, httpRequestsTotal } from '../metrics.js';
 
 export const metricsMiddleware = (req, res, next) => {

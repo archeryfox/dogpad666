@@ -1,3 +1,4 @@
+// dogpad.backend/domain/_services/userService.js
 import {prisma} from "../../prisma/prisma.js";
 import bcrypt from "bcryptjs";
 import logger from "../../utils/logger.js";

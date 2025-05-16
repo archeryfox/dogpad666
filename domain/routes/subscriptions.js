@@ -1,3 +1,4 @@
+// dogpad.backend/domain/routes/subscriptions.js
 // D:\WORK\kursTimeBunBackStage\routes\subscriptions.js
 import express from 'express';
 import {

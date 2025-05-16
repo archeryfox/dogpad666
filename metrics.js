@@ -1,4 +1,4 @@
-// metrics.js
+// dogpad.backend/metrics.js
 import { Registry, Counter, Gauge, Histogram, collectDefaultMetrics } from 'prom-client';
 
 const register = new Registry();

@@ -1,3 +1,4 @@
+// dogpad.backend/docs/swagger.js
 import swagger_autogen from "swagger-autogen";
 
 const options = {
